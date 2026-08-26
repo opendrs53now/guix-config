@@ -9,20 +9,23 @@
              (gnu services cups)
              (gnu services base)
              (gnu system nss)
+             (gnu services avahi)
              (gnu packages cups)
              (gnu packages gimp)
              (gnu packages inkscape)
              (gnu packages imagemagick)
-             (gnu packages fonts))
-
+             (gnu packages fonts)
+             (gnu system setuid))
+   
 (use-service-modules desktop xorg lightdm)
 
 (operating-system
   (kernel linux)
   (firmware (list
   linux-firmware))
-  (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "acpi_backlight=native" "acpi_backlight=native"))
+  (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "acpi_backlight=native"))
   (host-name "polaris")
+  (name-service-switch %mdns-host-lookup-nss)
   (timezone "America/Detroit")
   (locale "en_US.utf8")
   (keyboard-layout (keyboard-layout "us"))
@@ -58,6 +61,12 @@
                          (type "ext4")
                          (dependencies mapped-devices))
                        %base-file-systems))
+
+                (setuid-programs
+                  (append
+                    (list (setuid-program
+                            (program (file-append (specification->package "light") "/bin/light"))))
+                    %setuid-programs))
 
   (users (cons (user-account
                  (name "don")
@@ -140,7 +149,12 @@
                                  (specification->package "foomatic-filters")
                                  (specification->package "desktop-file-utils")
                                  (specification->package "ghostscript")
-                                 (specification->package "nvidia-driver")) 
+                                 (specification->package "nvidia-driver")
+                                 (specification->package "nss-mdns")
+                                 (specification->package "cups")
+                                 (specification->package "system-config-printer")
+                                 (specification->package "light")
+                                 ) 
                            %base-packages))
                    
          (services
@@ -151,11 +165,18 @@
                      (cups-configuration
                        (web-interface? #t)
                        (extensions (list cups-filters brlaser))))
-                   (simple-service  'flatpak-extra-data-dirs
-                     session-environment-service-type
-                     `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
+                   (simple-service 'flatpak-extra-data-dirs
+                                   session-environment-service-type
+                                   `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
+
+                   (simple-service 'fix-backlight
+                                   activation-service-type
+                                   #~(begin
+                                       (system* "/run/current-system/profile/bin/light" "-S" "80")))
                    (service lightdm-service-type))
+
              (modify-services %desktop-services
                  (delete gdm-service-type)))))
+
 
 
