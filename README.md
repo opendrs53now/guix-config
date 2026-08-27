@@ -28,3 +28,5 @@ guix home reconfigure home.scm
 
 # 5. Reboot
 sudo reboot
+
+## Managed by Guix on Polaris
