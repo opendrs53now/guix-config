@@ -1,4 +1,9 @@
 current
-channels.scm.bak
-my-packages/
+*.bak
+my-channels.scm.bak
 home-path
+channels.scm.bak
+current-channels.scm
+config.scm.bak
+my-packages/
+__pycache__/
