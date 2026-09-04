@@ -1,32 +1,17 @@
 # guix-config - Tuxedo Polaris - don@polaris
-
-My fully reproducible GNU Guix System. Private backup of the nvme0n1.
+My fully reproducible GNU Guix System. Backup of Polaris NVMe.
 
 ## What is in here
-- `config.scm` = The OS itself - kernel, nvidia, xfce, lightdm, printers, tor, file-systems. Needs sudo.
-- `home.scm` = My user dotfiles & apps - bash, user packages. No sudo.
-- `channels.scm` = Where Guix pulls packages from + nonguix for nvidia.
+- config.scm = The OS itself - kernel, nvidia, xfce, lightdm, printers, tor, file-systems. Needs sudo guix system reconfigure
+- home-configuration.scm = My user dotfiles & apps - bash, packages, flatpak Zoom 7.1.5 fix. No sudo.
+- channels.scm = Where Guix pulls packages from + nonguix for nvidia/non-free.
+- my-packages/zoom.scm = Custom Zoom 7.1.5 package that works with flatpak workaround.
 
 ## How to rebuild from scratch
+1. git clone https://github.com/opendrs53now/guix-config.git ~/.config/guix
+2. cd ~/.config/guix
+3. guix pull -C channels.scm && hash guix
+4. sudo guix system reconfigure config.scm
+5. guix home reconfigure home-configuration.scm
 
-On a fresh Guix install:
-
-```bash
-# 1. Clone this repo
-git clone https://github.com/opendrs53now/guix-config.git ~/guix-config
-cd ~/guix-config
-
-# 2. Pull exact same channels (important for nvidia)
-guix pull -C channels.scm
-# Then log out / log in or: hash guix
-
-# 3. Rebuild the whole system (the house)
-sudo guix system reconfigure config.scm
-
-# 4. Rebuild my home (the furniture)
-guix home reconfigure home.scm
-
-# 5. Reboot
-sudo reboot
-
-## Managed by Guix on Polaris
+## Managed by Guix on Polaris - Tuxedo Polaris 15 Gen6
