@@ -1,4 +1,4 @@
-     (use-modules (gnu)
+(use-modules (gnu)
              (gnu services)
              (gnu system mapped-devices)
              (nongnu packages linux)
@@ -8,21 +8,16 @@
              (gnu services networking)
              (gnu services cups)
              (gnu services base)
-             (gnu system nss)
              (gnu services avahi)
              (gnu packages cups)
-             (gnu packages gimp)
-             (gnu packages inkscape)
-             (gnu packages imagemagick)
              (gnu packages fonts)
              (gnu system setuid))
-   
+
 (use-service-modules desktop xorg lightdm)
 
 (operating-system
   (kernel linux)
-  (firmware (list
-  linux-firmware))
+  (firmware (list linux-firmware))
   (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "acpi_backlight=native"))
   (host-name "polaris")
   (name-service-switch %mdns-host-lookup-nss)
@@ -30,7 +25,7 @@
   (locale "en_US.utf8")
   (keyboard-layout (keyboard-layout "us"))
   (initrd microcode-initrd)
-  ;; --- LUKS unlock for nvme1n1p2 + p3 ---
+
   (mapped-devices
    (list (mapped-device
            (source (uuid "52d6551b-bff7-4dfe-bdab-2f9a44e4b557"))
@@ -54,7 +49,6 @@
                          (mount-point "/boot/efi")
                          (device (uuid "BA41-5E9B" 'fat32))
                          (type "vfat"))
-                       ;; If nvme1n1p3 is /home, keep this. If it's swap, delete it and use swap-devices below
                        (file-system
                          (mount-point "/home")
                          (device "/dev/mapper/crypthome")
@@ -62,11 +56,11 @@
                          (dependencies mapped-devices))
                        %base-file-systems))
 
-                (setuid-programs
-                  (append
-                    (list (setuid-program
-                            (program (file-append (specification->package "light") "/bin/light"))))
-                    %setuid-programs))
+  (setuid-programs
+    (append
+      (list (setuid-program
+              (program (file-append (specification->package "light") "/bin/light"))))
+      %setuid-programs))
 
   (users (cons (user-account
                  (name "don")
@@ -74,109 +68,56 @@
                  (group "users")
                  (supplementary-groups '("wheel" "netdev" "audio" "video")))
                %base-user-accounts))
-         (packages (append (list (specification->package "iwd")
-                                 (specification->package "gvfs")
-                                 (specification->package "git")
-                                 (specification->package "thunar-volman")
-                                 (specification->package "udisks")
-                                 (specification->package "emacs")
-                                 (specification->package "htop")
-                                 (specification->package "man-db")
-                                 (specification->package "man-pages")
-                                 (specification->package "strace")
-                                 (specification->package "ltrace")
-                                 (specification->package "valgrind")
-                                 (specification->package "lsof")
-                                 (specification->package "psmisc")
-                                 (specification->package "lm-sensors")
-                                 (specification->package "powertop")
-                                 (specification->package "pavucontrol")
-                                 (specification->package "bluez")
-                                 (specification->package "curl")
-                                 (specification->package "wget")
-                                 (specification->package "file")
-                                 (specification->package "unzip")
-                                 (specification->package "zip")
-                                 (specification->package "alacritty")
-                                 (specification->package "flatpak")
-                                 (specification->package "telegram-desktop")
-                                 (specification->package "vlc")
-                                 (specification->package "evince")
-                                 (specification->package "strawberry")
-                                 (specification->package "guile")
-                                 (specification->package "gcc-toolchain")
-                                 (specification->package "clang") 
-                                 (specification->package "make")
-                                 (specification->package "gdb")
-                                 (specification->package "binutils")
-                                 (specification->package "pkg-config")
-                                 (specification->package "python")
-                                 (specification->package "mit-scheme")
-                                 (specification->package "racket")
-                                 (specification->package "tmux")
-                                 (specification->package "icecat")
-                                 (specification->package "firefox")
-                                 (specification->package "rsync")
-                                 (specification->package "libreoffice")
-                                 (specification->package "mpv")
-                                 (specification->package "audacious")
-                                 (specification->package "librewolf")
-                                 (specification->package "ungoogled-chromium")
-                                 (specification->package "torbrowser")
-                                 (specification->package "okular")
-                                 (specification->package "gnome-terminal")
-                                 (specification->package "evolution")
-                                 (specification->package "zoom")
-                                 (specification->package "inkscape")
-                                 (specification->package "gimp")
-                                 (specification->package "imagemagick")
-                                 (specification->package "font-liberation")
-                                 (specification->package "shotwell")
-                                 (specification->package "gwenview")
-                                 (specification->package "digikam")
-                                 (specification->package "gnome-maps")
-                                 (specification->package "qbittorrent")
-                                 (specification->package "emacs-guix")
-                                 (specification->package "nss-certs")
-                                 (specification->package "isync")
-                                 (specification->package "msmtp")
-                                 (specification->package "snapshot")
-                                 (specification->package "guvcview")
-                                 (specification->package "avidemux")
-                                 (specification->package "yt-dlp")
-                                 (specification->package "brlaser")
-                                 (specification->package "cups-filters")
-                                 (specification->package "foomatic-filters")
-                                 (specification->package "desktop-file-utils")
-                                 (specification->package "ghostscript")
-                                 (specification->package "nvidia-driver")
-                                 (specification->package "nss-mdns")
-                                 (specification->package "cups")
-                                 (specification->package "system-config-printer")
-                                 (specification->package "light")
-                                 ) 
-                           %base-packages))
-                   
-         (services
-           (append
-             (list (service xfce-desktop-service-type)
-                   (service tor-service-type)
-                   (service cups-service-type
-                     (cups-configuration
-                       (web-interface? #t)
-                       (extensions (list cups-filters brlaser))))
-                   (simple-service 'flatpak-extra-data-dirs
-                                   session-environment-service-type
-                                   `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
 
-                   (simple-service 'fix-backlight
-                                   activation-service-type
-                                   #~(begin
-                                       (system* "/run/current-system/profile/bin/light" "-S" "80")))
-                   (service lightdm-service-type))
+  ;; SYSTEM: hardware, networking, printing, base tools only
+  (packages (append (list (specification->package "iwd")
+                         (specification->package "gvfs")
+                         (specification->package "git")
+                         (specification->package "thunar-volman")
+                         (specification->package "udisks")
+                         (specification->package "htop")
+                         (specification->package "man-db")
+                         (specification->package "man-pages")
+                         (specification->package "lm-sensors")
+                         (specification->package "powertop")
+                         (specification->package "pavucontrol")
+                         (specification->package "bluez")
+                         (specification->package "curl")
+                         (specification->package "wget")
+                         (specification->package "file")
+                         (specification->package "alacritty")
+                         (specification->package "rsync")
+                         (specification->package "nvidia-driver")
+                         (specification->package "nss-mdns")
+                         (specification->package "cups")
+                         (specification->package "brlaser")
+                         (specification->package "cups-filters")
+                         (specification->package "foomatic-filters")
+                         (specification->package "system-config-printer")
+                         (specification->package "light")
+                         (specification->package "desktop-file-utils")
+                         (specification->package "ghostscript"))
+                   %base-packages))
 
-             (modify-services %desktop-services
-                 (delete gdm-service-type)))))
+  (services
+    (append
+      (list (service xfce-desktop-service-type)
+            (service tor-service-type)
+            (service cups-service-type
+              (cups-configuration
+                (web-interface? #t)
+                (extensions (list cups-filters brlaser))))
+            (simple-service 'flatpak-extra-data-dirs
+                            session-environment-service-type
+                            `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
+            (simple-service 'fix-backlight
+                            activation-service-type
+                            #~(begin
+                                (system* "/run/current-system/profile/bin/light" "-S" "80")))
+            (service lightdm-service-type))
+      (modify-services %desktop-services
+        (delete gdm-service-type)))))
+
 
 
 
