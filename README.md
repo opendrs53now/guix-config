@@ -1,17 +1,29 @@
-# guix-config - Tuxedo Polaris - don@polaris
-My fully reproducible GNU Guix System. Backup of Polaris NVMe.
+# guix-config
 
-## What is in here
-- config.scm = The OS itself - kernel, nvidia, xfce, lightdm, printers, tor, file-systems. Needs sudo guix system reconfigure
-- home-configuration.scm = My user dotfiles & apps - bash, packages, flatpak Zoom 7.1.5 fix. No sudo.
-- channels.scm = Where Guix pulls packages from + nonguix for nvidia/non-free.
-- my-packages/zoom.scm = Custom Zoom 7.1.5 package that works with flatpak workaround.
+This is my personal setup for my Tuxedo Polaris laptop, running GNU Guix System. Everything I need to rebuild my system lives here.
 
-## How to rebuild from scratch
-1. git clone https://github.com/opendrs53now/guix-config.git ~/.config/guix
-2. cd ~/.config/guix
-3. guix pull -C channels.scm && hash guix
-4. sudo guix system reconfigure config.scm
-5. guix home reconfigure home-configuration.scm
+My local `~/dotfiles` folder _is_ this repository, so what you see here is exactly what's on my machine.
 
-## Managed by Guix on Polaris - Tuxedo Polaris 15 Gen6
+*What's inside*
+
+I keep two main configurations. `config.scm` defines the whole system, everything that needs root to change. `home.scm` defines my personal environment, my packages, services, and dotfiles.
+
+I also track my Guix channels in `channels.scm`, my custom packages in `my-packages/`, and my Flatpaks in `flatpaks.txt`.
+
+*How I use it*
+
+When I want to update, I just go into `~/dotfiles` and run:
+
+`sudo guix system reconfigure config.scm` for the system, and `guix home reconfigure home.scm` for my home.
+
+*About Flatpaks*
+
+I currently use 9 Flatpak apps, from WhatsApp and Telegram to Firefox, LibreWolf, Ungoogled Chromium, Evolution, LibreOffice, Zoom, and Tor Browser Launcher. They're listed in `flatpaks.txt`, which I keep in sync with what's actually installed.
+
+The Tor Browser Launcher needs a small fix in `home.scm` so it shows up correctly in GNOME search.
+
+*My machine*
+
+Host: Tuxedo Polaris (don@polaris)
+OS: GNU Guix System
+Last checked: September 20, 2026
