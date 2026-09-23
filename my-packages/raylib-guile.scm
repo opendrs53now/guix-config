@@ -1,3 +1,4 @@
+(define-module (raylib-guile)
   #:use-module (guix packages)
   #:use-module (guix git-download)
   #:use-module (guix download)
@@ -61,4 +62,3 @@
     (description "Bridge allowing Guile Scheme to use raylib for games and graphics.")
     (home-page "https://github.com/petelliott/raylib-guile")
     (license license:gpl3+)))
-
