@@ -1,16 +1,18 @@
+(add-to-load-path (string-append (getenv "HOME") "/dotfiles/my-packages"))
 (use-modules (gnu home)
              (gnu home services)
              (gnu home services shells)
              (gnu packages)
-             (guix gexp))
+             (guix gexp)
+             (raylib-guile))
 
 (home-environment
-  (packages (specifications->packages
+    (packages (append (specifications->packages
              (list
               ;; dev / lisp - for emacs/slime
               "emacs" "emacs-slime" "sbcl" "clisp" "mit-scheme" "guile" "racket"
               "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
-              "python" "python-ipython" "fasm"
+              "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
               "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
 
               ;; browser - GNU version only, rest via flatpak
@@ -31,14 +33,18 @@
               "fastfetch" "unzip" "zip" "isync" "msmtp"
               "flatpak" "moreutils" "hwinfo" "inxi" "lshw" "dmidecode"
               "gnome-calculator" "gnome-maps"
-              "font-liberation")))
+              "font-liberation"))
+             (list raylib-guile)))
 
   (services
    (list (service home-bash-service-type
                   (home-bash-configuration
                    (guix-defaults? #t)
                    (environment-variables
-                    `(("XDG_DATA_DIRS" . "$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
+                    `(("XDG_DATA_DIRS" . "$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")
+                      ("GUILE_LOAD_PATH" . "$HOME/.guix-home/profile/share/guile/site/3.0:$GUILE_LOAD_PATH")
+                      ("GUILE_LOAD_COMPILED_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/site-ccache:$GUILE_LOAD_COMPILED_PATH")
+                      ("GUILE_EXTENSIONS_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/extensions:$GUILE_EXTENSIONS_PATH")))
                    (bashrc
                     (list (plain-file "my-prompt"
                          "export PS1='\\[\\e[1;32m\\]\\u@\\h \\[\\e[1;34m\\]\\w \\[\\e[0m\\]λ '")))
