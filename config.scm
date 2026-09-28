@@ -71,6 +71,9 @@
 
   ;; SYSTEM: hardware, networking, printing, base tools only
   (packages (append (list (specification->package "iwd")
+                         (specification->package "gcc-toolchain")
+                         (specification->package "pkg-config")
+                         (specification->package "raylib")
                          (specification->package "gvfs")
                          (specification->package "git")
                          (specification->package "thunar-volman")
@@ -117,7 +120,3 @@
             (service lightdm-service-type))
       (modify-services %desktop-services
         (delete gdm-service-type)))))
-
-
-
-
