@@ -27,3 +27,11 @@ The Tor Browser Launcher needs a small fix in `home.scm` so it shows up correctl
 Host: Tuxedo Polaris (don@polaris)
 OS: GNU Guix System
 Last checked: September 20, 2026
+
+## raylib pong - Guix dev env
+
+This repo includes a reproducible Guix shell manifest `guix.scm` that provides everything needed to build the pong example: gcc-toolchain, make, coreutils, pkg-config, and raylib. No global install required — Guix supplies them ephemerally when you enter the shell.
+
+To use it, enter the environment with `guix shell`, then run `make` to build and `./pong` to run. If you prefer a one-shot build without staying in the shell, you can run `guix shell -- make` directly.
+
+Key files are `guix.scm` for the dev manifest and `config.scm` for the system configuration.
