@@ -2,52 +2,57 @@
 (use-modules (gnu home)
              (gnu home services)
              (gnu home services shells)
+             (gnu home services ssh)
              (gnu packages)
+             (gnu packages ssh)
              (guix gexp)
              (raylib-guile))
 
 (home-environment
-    (packages (append (specifications->packages
-             (list
-              ;; dev / lisp - for emacs/slime
-              "emacs" "emacs-slime" "sbcl" "clisp" "mit-scheme" "guile" "racket"
-              "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
-              "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
-              "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
+ (packages (append (specifications->packages
+                    (list
+                     "emacs" "emacs-slime" "sbcl" "clisp" "mit-scheme" "guile" "racket"
+                     "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
+                     "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
+                     "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
+                     "openssh" "git" "gnupg"
+                     "icecat"
+                     "vlc" "mpv" "audacious" "clementine" "yt-dlp"
+                     "shotwell" "gwenview" "geeqie" "nomacs" "eog" "feh" "digikam"
+                     "snapshot" "guvcview" "avidemux"
+                     "evince" "okular" "gnome-terminal"
+                     "gimp" "inkscape" "imagemagick"
+                     "fastfetch" "unzip" "zip" "isync" "msmtp"
+                     "flatpak" "moreutils" "hwinfo" "inxi" "lshw" "dmidecode"
+                     "gnome-calculator" "gnome-maps"
+                     "font-liberation"))
+                   (list raylib-guile)))
 
-              ;; browser - GNU version only, rest via flatpak
-              "icecat"
+ (services
+  (list
+   (service home-ssh-agent-service-type
+            (home-ssh-agent-configuration))
 
-              ;; media - stable Guix builds
-              "vlc" "mpv" "audacious" "clementine" "yt-dlp"
-              "shotwell" "gwenview" "geeqie" "nomacs" "eog" "feh" "digikam"
-              "snapshot" "guvcview" "avidemux"
+   (service home-openssh-service-type
+            (home-openssh-configuration
+             (hosts
+              (list
+               (openssh-host (name "github.com")
+                             (host-name "github.com")
+                             (user "git")
+                             (identity-file "~/.ssh/id_ed25519_github"))))))
 
-              ;; office / docs - lightweight only
-              "evince" "okular" "gnome-terminal"
-
-              ;; graphics
-              "gimp" "inkscape" "imagemagick" 
-
-              ;; utils
-              "fastfetch" "unzip" "zip" "isync" "msmtp"
-              "flatpak" "moreutils" "hwinfo" "inxi" "lshw" "dmidecode"
-              "gnome-calculator" "gnome-maps"
-              "font-liberation"))
-             (list raylib-guile)))
-
-  (services
-   (list (service home-bash-service-type
-                  (home-bash-configuration
-                   (guix-defaults? #t)
-                   (environment-variables
-                    `(("XDG_DATA_DIRS" . "$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")
-                      ("GUILE_LOAD_PATH" . "$HOME/.guix-home/profile/share/guile/site/3.0:$GUILE_LOAD_PATH")
-                      ("GUILE_LOAD_COMPILED_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/site-ccache:$GUILE_LOAD_COMPILED_PATH")
-                      ("GUILE_EXTENSIONS_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/extensions:$GUILE_EXTENSIONS_PATH")))
-                   (bashrc
-                    (list (plain-file "my-prompt"
-                         "export PS1='\\[\\e[1;32m\\]\\u@\\h \\[\\e[1;34m\\]\\w \\[\\e[0m\\]λ '")))
-                   (aliases
-                    '(("ll" . "ls -l")
-                      ("grep" . "grep --color=auto"))))))))
+   (service home-bash-service-type
+            (home-bash-configuration
+             (guix-defaults? #t)
+             (environment-variables
+              `(("XDG_DATA_DIRS" . "$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")
+                ("GUILE_LOAD_PATH" . "$HOME/.guix-home/profile/share/guile/site/3.0:$GUILE_LOAD_PATH")
+                ("GUILE_LOAD_COMPILED_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/site-ccache:$GUILE_LOAD_COMPILED_PATH")
+                ("GUILE_EXTENSIONS_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/extensions:$GUILE_EXTENSIONS_PATH")))
+             (bashrc
+              (list (plain-file "my-prompt"
+                                "export PS1='\\[\\e[1;32m\\]\\u@\\h \\[\\e[1;34m\\]\\w \\[\\e[0m\\]λ '")))
+             (aliases
+              '(("ll" . "ls -l")
+                ("grep" . "grep --color=auto"))))))))
