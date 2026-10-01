@@ -1,37 +1,41 @@
 # guix-config
 
-This is my personal setup for my Tuxedo Polaris laptop, running GNU Guix System. Everything I need to rebuild my system lives here.
+Personal setup for Tuxedo Polaris running GNU Guix System. ~/dotfiles is this repo.
 
-My local `~/dotfiles` folder _is_ this repository, so what you see here is exactly what's on my machine.
+## What's inside
 
-*What's inside*
+- config.scm - system config (root)
+- config.org - home config literate source of truth
+- home.scm - generated from config.org via org-babel-tangle (gitignored)
+- channels.scm - channels
+- my-packages/ - custom packages like raylib-guile
+- flatpaks.txt - 9 flatpaks
 
-I keep two main configurations. `config.scm` defines the whole system, everything that needs root to change. `home.scm` defines my personal environment, my packages, services, and dotfiles.
+## Workflow
 
-I also track my Guix channels in `channels.scm`, my custom packages in `my-packages/`, and my Flatpaks in `flatpaks.txt`.
+System:
+sudo guix system reconfigure config.scm
 
-*How I use it*
+Home:
+1. Edit config.org
+2. M-x org-babel-tangle (makes home.scm)
+3. guix home reconfigure home.scm
 
-When I want to update, I just go into `~/dotfiles` and run:
+## Flatpaks
 
-`sudo guix system reconfigure config.scm` for the system, and `guix home reconfigure home.scm` for my home.
+9 apps: WhatsApp, Telegram, Firefox, LibreWolf, Ungoogled Chromium, Evolution, LibreOffice, Zoom, Tor Browser Launcher. See flatpaks.txt. Tor needs XDG_DATA_DIRS fix in config.org.
 
-*About Flatpaks*
+## Security - SSH Persistence
 
-I currently use 9 Flatpak apps, from WhatsApp and Telegram to Firefox, LibreWolf, Ungoogled Chromium, Evolution, LibreOffice, Zoom, and Tor Browser Launcher. They're listed in `flatpaks.txt`, which I keep in sync with what's actually installed.
+Documented fully in config.org:
 
-The Tor Browser Launcher needs a small fix in `home.scm` so it shows up correctly in GNOME search.
+- home-ssh-agent-service-type runs ssh-agent -D -a /run/user/1000/ssh-agent/socket as shepherd service. Check: herd status ssh-agent
+- SSH_AUTH_SOCK hardcoded in bash service environment-variables into ~/.profile, survives reboot. No manual export needed.
+- home-openssh-service-type generates ~/.ssh/config with github.com -> ~/.ssh/id_ed25519_github
 
-*My machine*
+## Machine
 
-Host: Tuxedo Polaris (don@polaris)
+Host: don@polaris
 OS: GNU Guix System
-Last checked: September 20, 2026
-
-## raylib pong - Guix dev env
-
-This repo includes a reproducible Guix shell manifest `guix.scm` that provides everything needed to build the pong example: gcc-toolchain, make, coreutils, pkg-config, and raylib. No global install required — Guix supplies them ephemerally when you enter the shell.
-
-To use it, enter the environment with `guix shell`, then run `make` to build and `./pong` to run. If you prefer a one-shot build without staying in the shell, you can run `guix shell -- make` directly.
-
-Key files are `guix.scm` for the dev manifest and `config.scm` for the system configuration.
+Workflow: literate via org-babel
+Updated: 2026-10-01
