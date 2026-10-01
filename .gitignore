@@ -10,3 +10,6 @@ pong/pong
 home.scm
 home.scm
 home.scm
+home.scm
+*.BAK
+home.scm.BAK
