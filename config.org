@@ -1,9 +1,3 @@
-#+TITLE: Polaris Home Config - Literate
-
-* Setup - Custom Package Path
-This tells Guile where to find your raylib-guile package.
-
-* Main Home Environment - This tangles to home.scm
 #+begin_src scheme :tangle home.scm
 (add-to-load-path (string-append (getenv "HOME") "/dotfiles/my-packages"))
 
@@ -19,26 +13,32 @@ This tells Guile where to find your raylib-guile package.
 (home-environment
   (packages (append (specifications->packages
                      (list
+                      ;; Lisp/Scheme stack - my main dev
                       "emacs" "emacs-slime" "sbcl" "clisp" "mit-scheme" "guile" "racket"
+                      ;; C/C++ toolchain
                       "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
+                      ;; Python + low-level + graphics
                       "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
+                      ;; Debugging
                       "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
+                      ;; Core
                       "openssh" "git" "gnupg"
+                      ;; Browsers + Media
                       "icecat" "vlc" "mpv" "audacious" "clementine" "yt-dlp"
+                      ;; Images + Camera
                       "shotwell" "gwenview" "geeqie" "nomacs" "eog" "feh" "digikam"
-                      "snapshot" "guvcview" "avidemux" "evince" "okular" "gnome-terminal"
-                      "gimp" "inkscape" "imagemagick"
-                      "fastfetch" "unzip" "zip" "isync" "msmtp"
-                      "flatpak" "moreutils" "hwinfo" "inxi" "lshw" "dmidecode"
-                      "gnome-calculator" "gnome-maps" "font-liberation"))
+                      "snapshot" "guvcview" "avidemux" "gimp" "inkscape" "imagemagick"
+                      ;; GNOME apps
+                      "evince" "okular" "gnome-terminal" "gnome-calculator" "gnome-maps"
+                      ;; CLI tools
+                      "fastfetch" "hwinfo" "inxi" "lshw" "dmidecode"
+                      "unzip" "zip" "isync" "msmtp" "flatpak" "moreutils"
+                      "font-liberation"))
                     (list raylib-guile)))
-
   (services
    (list
-    ;; SSH-AGENT SERVICE - creates shepherd service 'ssh-agent' at /run/user/1000/ssh-agent/socket
     (service home-ssh-agent-service-type
              (home-ssh-agent-configuration))
-    ;; OPENSSH SERVICE - generates ~/.ssh/config symlink with github host + key
     (service home-openssh-service-type
              (home-openssh-configuration
               (hosts
@@ -47,8 +47,6 @@ This tells Guile where to find your raylib-guile package.
                               (host-name "github.com")
                               (user "git")
                               (identity-file "~/.ssh/id_ed25519_github"))))))
-    ;; BASH SERVICE - generates ~/.bashrc ~/.profile with prompt + env vars
-    ;; This PERSISTENCE FIX hardcodes SSH_AUTH_SOCK into every new shell
     (service home-bash-service-type
              (home-bash-configuration
               (guix-defaults? #t)
