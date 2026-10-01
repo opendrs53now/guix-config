@@ -1,65 +1,76 @@
 #+begin_src scheme :tangle home.scm
-(add-to-load-path (string-append (getenv "HOME") "/dotfiles/my-packages"))
+  (add-to-load-path (string-append (getenv "HOME") "/dotfiles/my-packages"))
 
-(use-modules (gnu home)
-             (gnu home services)
-             (gnu home services shells)
-             (gnu home services ssh)
-             (gnu packages)
-             (gnu packages ssh)
-             (guix gexp)
-             (raylib-guile))
+  (use-modules (gnu home)
+               (gnu home services)
+               (gnu home services shells)
+               (gnu home services ssh)
+               (gnu packages)
+               (gnu packages ssh)
+               (guix gexp)
+               (raylib-guile))
 
-(home-environment
-  (packages (append (specifications->packages
-                     (list
-                      ;; Lisp/Scheme stack - my main dev
-                      "emacs" "emacs-slime" "sbcl" "clisp" "mit-scheme" "guile" "racket"
-                      ;; C/C++ toolchain
-                      "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
-                      ;; Python + low-level + graphics
-                      "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
-                      ;; Debugging
-                      "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
-                      ;; Core
-                      "openssh" "git" "gnupg"
-                      ;; Browsers + Media
-                      "icecat" "vlc" "mpv" "audacious" "clementine" "yt-dlp"
-                      ;; Images + Camera
-                      "shotwell" "gwenview" "geeqie" "nomacs" "eog" "feh" "digikam"
-                      "snapshot" "guvcview" "avidemux" "gimp" "inkscape" "imagemagick"
-                      ;; GNOME apps
-                      "evince" "okular" "gnome-terminal" "gnome-calculator" "gnome-maps"
-                      ;; CLI tools
-                      "fastfetch" "hwinfo" "inxi" "lshw" "dmidecode"
-                      "unzip" "zip" "isync" "msmtp" "flatpak" "moreutils"
-                      "font-liberation"))
-                    (list raylib-guile)))
-  (services
-   (list
-    (service home-ssh-agent-service-type
-             (home-ssh-agent-configuration))
-    (service home-openssh-service-type
-             (home-openssh-configuration
-              (hosts
-               (list
-                (openssh-host (name "github.com")
-                              (host-name "github.com")
-                              (user "git")
-                              (identity-file "~/.ssh/id_ed25519_github"))))))
-    (service home-bash-service-type
-             (home-bash-configuration
-              (guix-defaults? #t)
-              (environment-variables
-               `(("SSH_AUTH_SOCK" . "/run/user/1000/ssh-agent/socket")
-                 ("XDG_DATA_DIRS" . "$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")
-                 ("GUILE_LOAD_PATH" . "$HOME/.guix-home/profile/share/guile/site/3.0:$GUILE_LOAD_PATH")
-                 ("GUILE_LOAD_COMPILED_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/site-ccache:$GUILE_LOAD_COMPILED_PATH")
-                 ("GUILE_EXTENSIONS_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/extensions:$GUILE_EXTENSIONS_PATH")))
-              (bashrc
-               (list (plain-file "my-prompt"
-                                 "export PS1='\\[\\e[1;32m\\]\\u@\\h \\[\\e[1;34m\\]\\w \\[\\e[0m\\]λ '")))
-              (aliases
-               '(("ll" . "ls -l")
-                 ("grep" . "grep --color=auto"))))))))
+  ;; --- Private overlay (optional) ---
+  ;; If ~/dotfiles-private/private.scm exists, add it to load path
+  (define %private-dir (string-append (getenv "HOME") "/dotfiles-private"))
+  (define %private-file (string-append %private-dir "/private.scm"))
+
+  (when (file-exists? %private-dir)
+    (add-to-load-path %private-dir))
+
+  ;; You will load actual private services inside home-environment with:
+  ;; (if (file-exists? %private-file) (list extra-private-service) '())
+
+  (home-environment
+    (packages (append (specifications->packages
+                       (list
+                        ;; Lisp/Scheme stack - my main dev
+                        "emacs" "emacs-slime" "sbcl" "clisp" "mit-scheme" "guile" "racket"
+                        ;; C/C++ toolchain
+                        "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
+                        ;; Python + low-level + graphics
+                        "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
+                        ;; Debugging
+                        "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
+                        ;; Core
+                        "openssh" "git" "gnupg"
+                        ;; Browsers + Media
+                        "icecat" "vlc" "mpv" "audacious" "clementine" "yt-dlp"
+                        ;; Images + Camera
+                        "shotwell" "gwenview" "geeqie" "nomacs" "eog" "feh" "digikam"
+                        "snapshot" "guvcview" "avidemux" "gimp" "inkscape" "imagemagick"
+                        ;; GNOME apps
+                        "evince" "okular" "gnome-terminal" "gnome-calculator" "gnome-maps"
+                        ;; CLI tools
+                        "fastfetch" "hwinfo" "inxi" "lshw" "dmidecode"
+                        "unzip" "zip" "isync" "msmtp" "flatpak" "moreutils"
+                        "font-liberation"))
+                      (list raylib-guile)))
+    (services
+     (list
+      (service home-ssh-agent-service-type
+               (home-ssh-agent-configuration))
+      (service home-openssh-service-type
+               (home-openssh-configuration
+                (hosts
+                 (list
+                  (openssh-host (name "github.com")
+                                (host-name "github.com")
+                                (user "git")
+                                (identity-file "~/.ssh/id_ed25519_github"))))))
+      (service home-bash-service-type
+               (home-bash-configuration
+                (guix-defaults? #t)
+                (environment-variables
+                 `(("SSH_AUTH_SOCK" . "/run/user/1000/ssh-agent/socket")
+                   ("XDG_DATA_DIRS" . "$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")
+                   ("GUILE_LOAD_PATH" . "$HOME/.guix-home/profile/share/guile/site/3.0:$GUILE_LOAD_PATH")
+                   ("GUILE_LOAD_COMPILED_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/site-ccache:$GUILE_LOAD_COMPILED_PATH")
+                   ("GUILE_EXTENSIONS_PATH" . "$HOME/.guix-home/profile/lib/guile/3.0/extensions:$GUILE_EXTENSIONS_PATH")))
+                (bashrc
+                 (list (plain-file "my-prompt"
+                                   "export PS1='\\[\\e[1;32m\\]\\u@\\h \\[\\e[1;34m\\]\\w \\[\\e[0m\\]λ '")))
+                (aliases
+                 '(("ll" . "ls -l")
+                   ("grep" . "grep --color=auto"))))))))
 #+end_src
