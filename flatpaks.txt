@@ -1,3 +1,4 @@
+com.brave.Browser
 com.github.eneshecan.WhatsAppForLinux
 io.github.ungoogled_software.ungoogled_chromium
 io.gitlab.librewolf-community
