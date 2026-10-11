@@ -13,12 +13,12 @@
                  (gnu home services ssh)
                  (gnu packages)
                  (gnu packages ssh)
+                 (nongnu packages nvidia)
                  (guix gexp)
                  (raylib-guile))
 
     (define %private-dir (string-append (getenv "HOME") "/dotfiles-private"))
     (define %private-file (string-append %private-dir "/private.scm"))
-
     (when (file-exists? %private-dir)
       (add-to-load-path %private-dir))
 
@@ -28,9 +28,9 @@
                           "emacs" "emacs-geiser" "emacs-geiser-guile" 
                           "emacs-company" "emacs-projectile" "emacs-paredit" "emacs-slime"
                           "sbcl" "clisp" "mit-scheme" "guile" "racket"
-                          "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
+                          "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config" "mesa-utils" "nvidia-driver"
                           "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
-                          "gammastep"
+                          "gammastep" "vulkan-tools"
                           "xmodmap" "xev" "setxkbmap"
                           "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
                           "openssh" "git" "gnupg"

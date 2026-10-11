@@ -2,23 +2,27 @@
              (gnu services)
              (gnu system mapped-devices)
              (nongnu packages linux)
-             (nongnu services nvidia)
+             (nonguix transformations)
+             (nongnu packages nvidia)
              (nongnu system linux-initrd)
              (gnu services desktop)
              (gnu services networking)
              (gnu services cups)
              (gnu services base)
              (gnu services avahi)
+             (gnu services xorg)
              (gnu packages cups)
              (gnu packages fonts)
+             (gnu packages xorg)
              (gnu system setuid))
 
 (use-service-modules desktop xorg lightdm)
 
-(operating-system
+(define %my-os
+  (operating-system
   (kernel linux)
   (firmware (list linux-firmware))
-  (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "acpi_backlight=native"))
+  (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "nvidia-drm.modeset=1" "acpi_backlight=native"))
   (host-name "polaris")
   (name-service-switch %mdns-host-lookup-nss)
   (timezone "America/Detroit")
@@ -90,7 +94,6 @@
                          (specification->package "file")
                          (specification->package "alacritty")
                          (specification->package "rsync")
-                         (specification->package "nvidia-driver")
                          (specification->package "nss-mdns")
                          (specification->package "cups")
                          (specification->package "brlaser")
@@ -104,19 +107,59 @@
 
   (services
     (append
-      (list (service xfce-desktop-service-type)
-            (service tor-service-type)
-            (service cups-service-type
-              (cups-configuration
-                (web-interface? #t)
-                (extensions (list cups-filters brlaser))))
-            (simple-service 'flatpak-extra-data-dirs
-                            session-environment-service-type
-                            `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
-            (simple-service 'fix-backlight
-                            activation-service-type
-                            #~(begin
-                                (system* "/run/current-system/profile/bin/light" "-S" "80")))
-            (service lightdm-service-type))
-      (modify-services %desktop-services
-        (delete gdm-service-type)))))
+      (list (set-xorg-configuration
+              (xorg-configuration
+                (modules (cons* nvda-595 %default-xorg-modules))
+                (drivers '("amdgpu" "nvidia"))
+                (extra-config
+                 (list "
+ Section \"ServerLayout\"
+   Identifier \"layout\"
+   Screen 0 \"amdgpu\"
+   Inactive \"nvidia\"
+   Option \"AllowNVIDIAGPUScreens\"
+ EndSection
+ Section \"Device\"
+   Identifier \"amdgpu\"
+   Driver \"amdgpu\"
+   BusID \"PCI:6:0:0\"
+   Option \"PrimaryGPU\" \"yes\"
+ EndSection
+ Section \"Screen\"
+   Identifier \"amdgpu\"
+   Device \"amdgpu\"
+ EndSection
+ Section \"Device\"
+   Identifier \"nvidia\"
+   Driver \"nvidia\"
+   BusID \"PCI:1:0:0\"
+   Option \"AllowEmptyInitialConfiguration\" \"True\"
+ EndSection
+ Section \"Screen\"
+   Identifier \"nvidia\"
+   Device \"nvidia\"
+ EndSection")))
+               lightdm-service-type)
+
+              (service xfce-desktop-service-type)
+              (service tor-service-type)
+              (service cups-service-type
+                (cups-configuration
+                  (web-interface? #t)
+                  (extensions (list cups-filters brlaser))))
+              (simple-service 'flatpak-extra-data-dirs
+                              session-environment-service-type
+                             `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
+              (simple-service 'fix-backlight
+                              activation-service-type
+                              #~(begin
+                                  (system* "/run/current-system/profile/bin/light" "-S" "80")))
+              (service lightdm-service-type))
+        (modify-services %desktop-services
+          (delete gdm-service-type)))))
+)
+((nonguix-transformation-nvidia
+   #:driver nvda-595
+   #:configure-xorg? #f)
+%my-os)
+

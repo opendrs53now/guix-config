@@ -4,15 +4,14 @@
                (gnu home services)
                (gnu home services shells)
                (gnu home services ssh)
-               (gnu home services mcron)
                (gnu packages)
                (gnu packages ssh)
+               (nongnu packages nvidia)
                (guix gexp)
                (raylib-guile))
 
   (define %private-dir (string-append (getenv "HOME") "/dotfiles-private"))
   (define %private-file (string-append %private-dir "/private.scm"))
-
   (when (file-exists? %private-dir)
     (add-to-load-path %private-dir))
 
@@ -22,9 +21,9 @@
                         "emacs" "emacs-geiser" "emacs-geiser-guile" 
                         "emacs-company" "emacs-projectile" "emacs-paredit" "emacs-slime"
                         "sbcl" "clisp" "mit-scheme" "guile" "racket"
-                        "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config"
+                        "gcc-toolchain" "clang" "make" "gdb" "binutils" "pkg-config" "mesa-utils" "nvidia-driver"
                         "python" "python-ipython" "fasm" "sdl2" "sdl3" "raylib"
-                        "gammastep"
+                        "gammastep" "vulkan-tools"
                         "xmodmap" "xev" "setxkbmap"
                         "strace" "ltrace" "valgrind" "lsof" "psmisc" "tmux"
                         "openssh" "git" "gnupg"
@@ -38,14 +37,6 @@
                       (list raylib-guile)))
     (services
      (list
-      ;; --- weekly flatpak update - Sunday 10am ---
-      (service home-mcron-service-type
-        (home-mcron-configuration
-          (jobs
-            (list
-              #~(job "0 10 * * 0"
-                     "flatpak update -y --user >> $HOME/.local/share/flatpak-update.log 2>&1")))))
-
       ;; --- 1. Your AZIO right Menu key (keycode 135) -> λ + silent eye-relief ---
       (service home-files-service-type
        `((".Xmodmap"

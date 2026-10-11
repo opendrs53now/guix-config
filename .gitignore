@@ -1,9 +1,13 @@
-current
-*.bak
-my-channels.scm.bak
-home-path
-channels.scm.bak
-current-channels.scm
-config.scm.bak
-__pycache__/
-pong/pong
+# emacs
+*~
+\#*\#
+.\#*
+
+# nano 
+*.save
+*.swp
+.*.swp
+*.swo
+
+# Guix
+*.go
