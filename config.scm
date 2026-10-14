@@ -162,4 +162,3 @@
    #:driver nvda-595
    #:configure-xorg? #f)
 %my-os)
-
