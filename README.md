@@ -52,7 +52,8 @@ so home can change layout options freely:
   (services (list (service xfce-desktop-service-type)
                   (service lightdm-service-type (lightdm-configuration (xorg-configuration %my-xorg))))))
 
-This makes both cards visible (amdgpu + TU106 RTX 2060 Mobile) and gives XFCE two outputs. 
+This makes both cards visible (amdgpu + TU106 RTX 2060 Mobile) and gives 
+XFCE two outputs. 
 Home environment in home.scm then just uses home-files-service-type for 
 .Xmodmap (AZIO λ key) and eye-relief gammastep -l 42.015277:-86.505, 
 and lets XFCE store resolution/refresh/position in displays.xml:
@@ -61,25 +62,39 @@ Samsung 32": 1920x1080_, 1.00, 60.00 Hz, extended right
 No xrandr scripts. Change display options in XFCE, it survives guix home reconfigure.
 
 Flatpak System
+
 flatpak/flatpaks.txt - single source of truth (10 apps)
 flatpak/sync.sh - installs + removes staleflatpak/fixes/_.env 
-- per-app overrides e.g. WhatsAppForLinux WEBKIT_DISABLE_DMABUF_RENDERER=1flatpak/fixes/apply.sh
+
+- per-app overrides 
+
+WhatsAppForLinux WEBKIT_DISABLE_DMABUF_RENDERER=1flatpak/fixes/apply.sh
  
 - generic applierSSH / Environment
+
 From home.scm:
 home-ssh-agent-service-type -> herd status ssh-agent socket at
  /run/user/1000/ssh-agent/sockethome-openssh-service-type -> github.com 
--> id_ed25519_githubBash SSH_AUTH_SOCK, GUILE___PATH exported for Flatpak + GuilePolaris Quirks 
+-> id_ed25519_githubBash SSH_AUTH_SOCK, GUILE___PATH exported for 
+Flatpak + GuilePolaris Quirks 
+
 — Runtime Fix [2026-10-17]
-Cold boot race left /run/user/1000 without perms -> PulseAudio Failed to create secure directory 
-(/run/user/1000/pulse) + Emacs CRITICAL D-Bus warnings on config.org. 
+
+Cold boot race left /run/user/1000 without perms -> PulseAudio Failed to 
+create secure directory 
+(/run/user/1000/pulse) + Emacs CRITICAL D-Bus warnings on config.org.
+ 
 Fixed with first Autostart entry 00-fix-pulse-runtime.desktop:
-sh -c "rm -rf /run/user/1000/pulse-native; mkdir -p /run/user/1000; chmod 700 /run/user/1000; pulseaudio --start; start-pulseaudio-x11"
+sh -c "rm -rf /run/user/1000/pulse-native; mkdir -p /run/user/1000; 
+chmod 700 /run/user/1000; pulseaudio --start; start-pulseaudio-x11"
+
 Verified with Volume Control back to Analog Stereo Duplex + Family 17h/19h + TU106 OFF.
 
 Machine
+
 don@polaris — GNU Guix System — Tuxedo Polaris 17 
 (AMD Radeon/Renoir + nVidia TU106) 
 — Dual 1920x1080 Laptop@144Hz + Samsung 32"@60Hz 
 — XFCE + LightDM 
-— Stevensville X11 — 2026-10-17
+- X11 
+— 2026-10-17
