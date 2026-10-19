@@ -1,27 +1,37 @@
 (use-modules (gnu)
-             (gnu services)
              (gnu system mapped-devices)
              (nongnu packages linux)
-             (nonguix transformations)
              (nongnu packages nvidia)
              (nongnu system linux-initrd)
+             (nongnu services nvidia)
              (gnu services desktop)
-             (gnu services networking)
-             (gnu services cups)
-             (gnu services base)
-             (gnu services avahi)
+             (gnu services lightdm)
              (gnu services xorg)
+             (gnu services networking)
              (gnu packages cups)
              (gnu packages fonts)
              (gnu packages xorg)
-             (gnu system setuid))
+             (gnu system setuid)
+             (srfi srfi-1))
 
-(use-service-modules desktop xorg lightdm)
+(use-service-modules desktop networking cups avahi)
 
-(define %my-os
-  (operating-system
+(define %my-xorg
+  (xorg-configuration
+    (modules (cons* nvidia-driver %default-xorg-modules))
+    (drivers '("amdgpu" "nvidia"))
+    (extra-config
+      (list
+        "Section \"ServerLayout\"\n  Identifier \"layout\"\n  Screen 0 \"amdgpu\"\n  Inactive \"nvidia\"\n  Option \"AllowNVIDIAGPUScreens\" \"True\"\nEndSection"
+        "Section \"Device\"\n  Identifier \"amdgpu\"\n  Driver \"amdgpu\"\n  BusID \"PCI:6:0:0\"\n  Option \"PrimaryGPU\" \"yes\"\nEndSection"
+        "Section \"Screen\"\n  Identifier \"amdgpu\"\n  Device \"amdgpu\"\nEndSection"
+        "Section \"Device\"\n  Identifier \"nvidia\"\n  Driver \"nvidia\"\n  BusID \"PCI:1:0:0\"\n  Option \"AllowEmptyInitialConfiguration\" \"True\"\nEndSection"
+        "Section \"Screen\"\n  Identifier \"nvidia\"\n  Device \"nvidia\"\nEndSection"))))
+
+(operating-system
   (kernel linux)
-  (firmware (list linux-firmware))
+  (kernel-loadable-modules (list nvidia-module))
+  (firmware (list linux-firmware nvidia-firmware))
   (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "nvidia-drm.modeset=1" "acpi_backlight=native"))
   (host-name "polaris")
   (name-service-switch %mdns-host-lookup-nss)
@@ -73,7 +83,6 @@
                  (supplementary-groups '("wheel" "netdev" "audio" "video")))
                %base-user-accounts))
 
-  ;; SYSTEM: hardware, networking, printing, base tools only
   (packages (append (list (specification->package "iwd")
                          (specification->package "gcc-toolchain")
                          (specification->package "pkg-config")
@@ -102,63 +111,32 @@
                          (specification->package "system-config-printer")
                          (specification->package "light")
                          (specification->package "desktop-file-utils")
-                         (specification->package "ghostscript"))
+                         (specification->package "ghostscript")
+                         (specification->package "nvidia-settings"))
                    %base-packages))
 
   (services
     (append
-      (list (set-xorg-configuration
-              (xorg-configuration
-                (modules (cons* nvda-595 %default-xorg-modules))
-                (drivers '("amdgpu" "nvidia"))
-                (extra-config
-                 (list "
- Section \"ServerLayout\"
-   Identifier \"layout\"
-   Screen 0 \"amdgpu\"
-   Inactive \"nvidia\"
-   Option \"AllowNVIDIAGPUScreens\"
- EndSection
- Section \"Device\"
-   Identifier \"amdgpu\"
-   Driver \"amdgpu\"
-   BusID \"PCI:6:0:0\"
-   Option \"PrimaryGPU\" \"yes\"
- EndSection
- Section \"Screen\"
-   Identifier \"amdgpu\"
-   Device \"amdgpu\"
- EndSection
- Section \"Device\"
-   Identifier \"nvidia\"
-   Driver \"nvidia\"
-   BusID \"PCI:1:0:0\"
-   Option \"AllowEmptyInitialConfiguration\" \"True\"
- EndSection
- Section \"Screen\"
-   Identifier \"nvidia\"
-   Device \"nvidia\"
- EndSection")))
-               lightdm-service-type)
-
-              (service xfce-desktop-service-type)
-              (service tor-service-type)
-              (service cups-service-type
-                (cups-configuration
-                  (web-interface? #t)
-                  (extensions (list cups-filters brlaser))))
-              (simple-service 'flatpak-extra-data-dirs
-                              session-environment-service-type
-                             `(("XDG_DATA_DIRS" . "/home/don/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS")))
-              (simple-service 'fix-backlight
-                              activation-service-type
-                              #~(begin
-                                  (system* "/run/current-system/profile/bin/light" "-S" "80")))
-              (service lightdm-service-type))
-        (modify-services %desktop-services
-          (delete gdm-service-type)))))
-)
-((nonguix-transformation-nvidia
-   #:driver nvda-595
-   #:configure-xorg? #f)
-%my-os)
+      (list
+        (service xfce-desktop-service-type)
+        (service nvidia-service-type)
+        ;; FIXES XFCE SHUTDOWN ERROR
+        (service lightdm-service-type
+                 (lightdm-configuration
+                   (xorg-configuration %my-xorg)))
+        (service tor-service-type)
+        (service cups-service-type
+                 (cups-configuration
+                   (web-interface? #t)
+                   (extensions (list cups-filters brlaser))))
+        (service wpa-supplicant-service-type)
+        (service network-manager-service-type)
+        (service avahi-service-type))
+      (remove (lambda (service)
+                (memq (service-kind service)
+                      (list gdm-service-type
+                            cups-service-type
+                            wpa-supplicant-service-type
+                            network-manager-service-type
+                            avahi-service-type)))
+              %desktop-services))))
