@@ -1,8 +1,155 @@
-;; 2026-10-18
-#+TITLE: Don's Guix Home - Polaris - Stevensville X11 - The Real Config
-#+PROPERTY: header-args: :tangle home.scm
+;; 2026-10-19 - Polaris v5 - Pure Single Source
+#+TITLE: Don's Guix - Polaris - Pure Guix System + Home + Emacs - Single Source of Truth
+#+PROPERTY: header-args: :tangle config.scm
 
-* Home - Packages + Services
+* System - Polaris OS - Pure System - X11 + Nvidia + XFCE + LUKS
+
+#+begin_src scheme :tangle config.scm
+(use-modules (gnu)
+             (gnu system mapped-devices)
+             (nongnu packages linux)
+             (nongnu packages nvidia)
+             (nongnu system linux-initrd)
+             (nongnu services nvidia)
+             (gnu services desktop)
+             (gnu services lightdm)
+             (gnu services xorg)
+             (gnu services networking)
+             (gnu packages cups)
+             (gnu packages fonts)
+             (gnu packages xorg)
+             (gnu system setuid)
+             (srfi srfi-1))
+
+(use-service-modules desktop networking cups avahi)
+
+(define %my-xorg
+  (xorg-configuration
+    (modules (cons* nvidia-driver %default-xorg-modules))
+    (drivers '("amdgpu" "nvidia"))
+    (extra-config
+      (list
+        "Section \"ServerLayout\"\n  Identifier \"layout\"\n  Screen 0 \"amdgpu\"\n  Inactive \"nvidia\"\n  Option \"AllowNVIDIAGPUScreens\" \"True\"\nEndSection"
+        "Section \"Device\"\n  Identifier \"amdgpu\"\n  Driver \"amdgpu\"\n  BusID \"PCI:6:0:0\"\n  Option \"PrimaryGPU\" \"yes\"\nEndSection"
+        "Section \"Screen\"\n  Identifier \"amdgpu\"\n  Device \"amdgpu\"\nEndSection"
+        "Section \"Device\"\n  Identifier \"nvidia\"\n  Driver \"nvidia\"\n  BusID \"PCI:1:0:0\"\n  Option \"AllowEmptyInitialConfiguration\" \"True\"\nEndSection"
+        "Section \"Screen\"\n  Identifier \"nvidia\"\n  Device \"nvidia\"\nEndSection"))))
+
+(operating-system
+  (kernel linux)
+  (kernel-loadable-modules (list nvidia-module))
+  (firmware (list linux-firmware nvidia-firmware))
+  (kernel-arguments '("modprobe.blacklist=nouveau" "nouveau.modeset=0" "nvidia-drm.modeset=1" "acpi_backlight=native"))
+  (host-name "polaris")
+  (name-service-switch %mdns-host-lookup-nss)
+  (timezone "America/Detroit")
+  (locale "en_US.utf8")
+  (keyboard-layout (keyboard-layout "us"))
+  (initrd microcode-initrd)
+
+  (mapped-devices
+   (list (mapped-device
+           (source (uuid "52d6551b-bff7-4dfe-bdab-2f9a44e4b557"))
+           (target "cryptroot")
+           (type luks-device-mapping))
+         (mapped-device
+           (source (uuid "344e4020-2299-4890-bedc-b4e39e3ab649"))
+           (target "crypthome")
+           (type luks-device-mapping))))
+
+  (bootloader (bootloader-configuration
+                (bootloader grub-efi-bootloader)
+                (targets (list "/boot/efi"))))
+
+  (file-systems (cons* (file-system
+                         (mount-point "/")
+                         (device "/dev/mapper/cryptroot")
+                         (type "ext4")
+                         (dependencies mapped-devices))
+                       (file-system
+                         (mount-point "/boot/efi")
+                         (device (uuid "BA41-5E9B" 'fat32))
+                         (type "vfat"))
+                       (file-system
+                         (mount-point "/home")
+                         (device "/dev/mapper/crypthome")
+                         (type "ext4")
+                         (dependencies mapped-devices))
+                       %base-file-systems))
+
+  (setuid-programs
+    (append
+      (list (setuid-program
+              (program (file-append (specification->package "light") "/bin/light"))))
+      %setuid-programs))
+
+  (users (cons (user-account
+                 (name "don")
+                 (comment "Don")
+                 (group "users")
+                 (supplementary-groups '("wheel" "netdev" "audio" "video")))
+               %base-user-accounts))
+
+  (packages (append (list (specification->package "iwd")
+                         (specification->package "gcc-toolchain")
+                         (specification->package "pkg-config")
+                         (specification->package "raylib")
+                         (specification->package "gvfs")
+                         (specification->package "git")
+                         (specification->package "thunar-volman")
+                         (specification->package "udisks")
+                         (specification->package "htop")
+                         (specification->package "man-db")
+                         (specification->package "man-pages")
+                         (specification->package "lm-sensors")
+                         (specification->package "powertop")
+                         (specification->package "pavucontrol")
+                         (specification->package "bluez")
+                         (specification->package "curl")
+                         (specification->package "wget")
+                         (specification->package "file")
+                         (specification->package "alacritty")
+                         (specification->package "rsync")
+                         (specification->package "nss-mdns")
+                         (specification->package "cups")
+                         (specification->package "brlaser")
+                         (specification->package "cups-filters")
+                         (specification->package "foomatic-filters")
+                         (specification->package "system-config-printer")
+                         (specification->package "light")
+                         (specification->package "desktop-file-utils")
+                         (specification->package "ghostscript")
+                         (specification->package "nvidia-settings"))
+                   %base-packages))
+
+  (services
+    (append
+      (list
+        (service xfce-desktop-service-type)
+        (service nvidia-service-type)
+        ;; FIXES XFCE SHUTDOWN ERROR
+        (service lightdm-service-type
+                 (lightdm-configuration
+                   (xorg-configuration %my-xorg)))
+        (service tor-service-type)
+        (service cups-service-type
+                 (cups-configuration
+                   (web-interface? #t)
+                   (extensions (list cups-filters brlaser))))
+        (service wpa-supplicant-service-type)
+        (service network-manager-service-type)
+        (service avahi-service-type))
+      (remove (lambda (service)
+                (memq (service-kind service)
+                      (list gdm-service-type
+                            cups-service-type
+                            wpa-supplicant-service-type
+                            network-manager-service-type
+                            avahi-service-type)))
+              %desktop-services))))
+#+end_src
+
+* Home - Packages + Services - Pure Home - Stevensville X11
 
 #+begin_src scheme :tangle home.scm
 (add-to-load-path (string-append (getenv "HOME") "/dotfiles/my-packages"))
@@ -101,7 +248,7 @@ WebBrowser=custom-WebBrowser
                      ("grep" . "grep --color=auto"))))))))
 #+end_src
 
-* Emacs - The Perfect Setup + λ key - Polaris v4 FINAL 2026-10-02 - Emacs 31.1
+* Emacs - The Perfect Setup + λ key - Polaris v4 FINAL
 
 #+begin_src emacs-lisp :tangle ~/.emacs.d/init.el
 ;;; init.el --- Polaris init - Guix 22.5 + gruber-darker + λ -*- lexical-binding: t; -*-
