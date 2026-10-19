@@ -66,11 +66,3 @@ Fixed with Autostart `00-fix-pulse-runtime.desktop`:
 ## Machine
 
 don@polaris — GNU Guix System — Tuxedo Polaris 17 (AMD Radeon/Renoir + nVidia TU106) — Dual 1920x1080 Laptop@144Hz + Samsung 32"@60Hz — XFCE + LightDM + X11 — Polaris v5 Pure Single Source — 2026-10-19
-
-Then:
-
-```bash
-git add README.md
-git commit -m "docs: README Polaris v5 - single source is config.org -> system+home+emacs"
-git push
-Want me to keep your old Displays code block fully verbatim or is this shorter v5 version good?
