@@ -1,6 +1,7 @@
 # guix-config — Polaris v5
 
-Personal GNU Guix System for Tuxedo Polaris. This repo is `~/dotfiles`. **Pure Single Source.**
+Personal GNU Guix System for Tuxedo Polaris. This repo is `~/dotfiles`. 
+**Pure Single Source.**
 
 One Org file → whole machine.
 
@@ -22,11 +23,13 @@ One Org file → whole machine.
 4. System: `sudo guix system reconfigure config.scm`
 5. Home: `guix home reconfigure home.scm`
 
-Verify: `git diff` should show NO diff for `config.scm` / `home.scm` after tangle — only `config.org`.
+Verify: `git diff` should show NO diff for `config.scm` / `home.scm` 
+after tangle — only `config.org`.
 
 ## Displays — Dual Monitor [2026-10-17 → v5 2026-10-19]
 
-Laptop 1920x1080@144Hz Primary + Samsung 32" 1920x1080@60Hz extended right, Mirror Off
+Laptop 1920x1080@144Hz Primary + Samsung 32" 
+1920x1080@60Hz extended right, Mirror Off
 
 System in `config.scm` declares hybrid GPU capability:
 
@@ -36,7 +39,8 @@ System in `config.scm` declares hybrid GPU capability:
     (modules (cons* nvidia-driver %default-xorg-modules))
     (drivers '("amdgpu" "nvidia"))
     (extra-config (list "Section \"ServerLayout\" ..." "Section \"Device\" ..."))))
-Both cards visible (amdgpu Renoir + TU106 RTX 2060 Mobile). XFCE stores layout in `displays.xml`. No xrandr scripts.
+Both cards visible (amdgpu Renoir + TU106 RTX 2060 Mobile).
+XFCE stores layout in `displays.xml`. No xrandr scripts.
 
 Home in `home.scm` handles:
 - `.Xmodmap` - AZIO right Menu (keycode 135) → λ
@@ -59,10 +63,16 @@ From `home.scm`:
 
 ## Polaris Quirks - Runtime Fix [2026-10-17]
 
-Cold boot race left `/run/user/1000` without perms → PulseAudio Failed to create secure directory + Emacs D-Bus warnings.
+Cold boot race left `/run/user/1000` without perms → PulseAudio
+Failed to create secure directory + Emacs D-Bus warnings.
 Fixed with Autostart `00-fix-pulse-runtime.desktop`:
-`sh -c "rm -rf /run/user/1000/pulse-native; mkdir -p /run/user/1000; chmod 700 /run/user/1000; pulseaudio --start; start-pulseaudio-x11"`
+`sh -c "rm -rf /run/user/1000/pulse-native;
+mkdir -p /run/user/1000; chmod 700 /run/user/1000;
+pulseaudio --start; start-pulseaudio-x11"`
 
 ## Machine
 
-don@polaris — GNU Guix System — Tuxedo Polaris 17 (AMD Radeon/Renoir + nVidia TU106) — Dual 1920x1080 Laptop@144Hz + Samsung 32"@60Hz — XFCE + LightDM + X11 — Polaris v5 Pure Single Source — 2026-10-19
+don@polaris — GNU Guix System — Tuxedo Polaris 17
+(AMD Radeon/Renoir + nVidia TU106) — Dual 1920x1080
+Laptop@144Hz + Samsung 32"@60Hz — XFCE + LightDM + X11
+— Polaris v5 Pure Single Source — 2026-10-19
