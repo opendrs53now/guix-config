@@ -1,8 +1,8 @@
 ;; 2026-10-19 - Polaris v5 - Pure Single Source
-#+TITLE: Don's Guix - Polaris - Pure Guix System + Home + Emacs - Single Source of Truth
+#+TITLE: Don's Tuxedo - Polaris - Hybrid Guix System + Home + Emacs - Single Source of Truth
 #+PROPERTY: header-args: :tangle config.scm
 
-* System - Polaris OS - Pure System - X11 + Nvidia + XFCE + LUKS
+* System -Tuxedo Polaris - Hybrid Guix System - X11 + XFCE + Lightdm
 
 #+begin_src scheme :tangle config.scm
 (use-modules (gnu)
@@ -248,7 +248,7 @@ WebBrowser=custom-WebBrowser
                      ("grep" . "grep --color=auto"))))))))
 #+end_src
 
-* Emacs - The Perfect Setup + λ key - Polaris v4 FINAL
+* Emacs - The Perfect Setup + λ key - Polaris v5 
 
 #+begin_src emacs-lisp :tangle ~/.emacs.d/init.el
 ;;; init.el --- Polaris init - Guix 22.5 + gruber-darker + λ -*- lexical-binding: t; -*-
