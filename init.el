@@ -1,5 +1,5 @@
 ;;; init.el --- Polaris init - Guix 22.5 + gruber-darker + λ -*- lexical-binding: t; -*-
-;; 2026-10-02 - v4 FINAL for Emacs 31.1 - Gen 42/43 dark - BAK 20261002-1217
+;; 2026-11-03 - v5 orgcube soft-load, keeps λ key - GNU Emacs 31.1
 
 (require 'package)
 (require 'dired-x)
@@ -9,14 +9,16 @@
 (setq gc-cons-threshold (* 16 1024 1024))
 (setq inhibit-startup-screen t)
 (show-paren-mode 1)
+(setq org-src-fontify-natively t)
+(setq org-src-tab-acts-natively t)
 
-;; --- The Perfect Setup (Guix Manual 22.5) - SAFE ---
 (when (require 'geiser nil t)
   (setq geiser-active-implementations '(guile))
   (setq geiser-guile-binary "guile")
   (setq geiser-repl-history-filename "~/.cache/geiser-history")
   (when (boundp 'geiser-guile-load-path)
     (add-to-list 'geiser-guile-load-path "~/dotfiles")
+    (add-to-list 'geiser-guile-load-path "~/dotfiles/orgcube")
     (add-to-list 'geiser-guile-load-path "~/dotfiles/my-packages")))
 
 (setq dired-listing-switches "-alh --group-directories-first")
@@ -52,6 +54,13 @@
   (when (package-installed-p 'gruber-darker-theme)
     (load-theme 'gruber-darker t t)
     (enable-theme 'gruber-darker)))
+
+;; --- OrgCube - soft load, never crash init ---
+(add-to-list 'load-path "~/dotfiles/orgcube/")
+(when (require 'ob-orgcube nil t)
+  (with-eval-after-load 'org
+    (add-to-list 'org-babel-load-languages '(orgcube . t))
+    (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
 
 ;; --- Polaris λ - KEEP AT BOTTOM - leave until authorized removal ---
 (global-set-key (kbd "<menu>") (lambda () (interactive) (insert "λ")))
