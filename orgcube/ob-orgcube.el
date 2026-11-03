@@ -1,0 +1,8 @@
+(require 'ob)
+(defvar org-babel-default-header-args:orgcube '((:results . "value") (:scope . "public") (:k . 5)))
+(defun org-babel-execute:orgcube (body params)
+  (let* ((scope (cdr (assoc :scope params)))
+         (query (string-trim body)))
+    (format "{\"query\":\"%s\",\"scope\":\"%s\"}" query scope)))
+(add-to-list 'org-babel-load-languages '(orgcube . t))
+(provide 'ob-orgcube)

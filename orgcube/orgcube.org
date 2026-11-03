@@ -1,0 +1,87 @@
+# -*- mode: org; lexical-binding: t; no-byte-compile: t; -*-
+#+TITLE: OrgCube — ACP Agent — Polaris λ
+#+PROPERTY: header-args:scheme :mkdirp yes :tangle-mode (identity #o755)
+
+* Step 1 — Library: orgcube.scm [Ring0: YubiCube]
+#+begin_src scheme :tangle ./orgcube.scm
+(define-module (orgcube)
+  #:use-module (ice-9 format)
+  #:use-module (ice-9 popen)
+  #:use-module (ice-9 rdelim)
+  #:use-module (srfi srfi-13)
+  #:export (%cubes load-cube cube-scope-check eigencube-query eigencube_query yubicube-present?))
+
+(define %cubes
+  '((public . "/home/don/dotfiles/orgcube/org-memory/public.cube")
+    (private . "/home/don/dotfiles/orgcube/org-memory/private.cube")))
+
+(define (eigencube_query q s) '())
+
+(define (yubicube-present?)
+  (let* ((port (open-input-pipe "lsusb 2>/dev/null"))
+         (out (let loop ((line (read-line port)) (acc ""))
+                (if (eof-object? line) acc
+                    (loop (read-line port) (string-append acc line "\n")))))
+         (_ (close-pipe port)))
+    (or (string-contains out "Yubico")
+        (string-contains out "YubiKey"))))
+
+(define (load-cube scope)
+  (let ((path (assoc-ref %cubes scope)))
+    (and path (file-exists? path) path)))
+
+(define (cube-scope-check requested-scope tool-scope)
+  (cond ((eq? requested-scope 'public) #t)
+        ((and (eq? requested-scope 'private) (eq? tool-scope 'private))
+         (if (yubicube-present?) 'needs-touch 'no-hardware))
+        (else #f)))
+
+(define* (eigencube-query query #:key (scope 'public) (k 5))
+  (eigencube_query query (if (symbol? scope) (symbol->string scope) scope)))
+#+end_src
+
+* Step 2 — Host: orgcube-host.scm [ACP JSON loop]
+#+begin_src scheme :tangle ./orgcube-host.scm :shebang #!/usr/bin/env guile
+!#
+(add-to-load-path "/home/don/dotfiles/orgcube")
+(use-modules (ice-9 rdelim) (srfi srfi-13) (ice-9 format) (json) (orgcube))
+
+(format (current-error-port) ";; OrgCube Guile host ready [YubiCube: ~a]~%"
+        (if (yubicube-present?) "present - touch" "not detected"))
+
+(let loop ((line (read-line)))
+  (unless (eof-object? line)
+    (catch #t
+      (lambda ()
+        (let* ((req (json-string->scm line))
+               (q (assoc-ref req "query"))
+               (s (or (assoc-ref req "scope") "public")))
+          (when q
+            (format #t "~a~%" (scm->json-string `((result . ,(string-append "EIGEN_OK:" q)) (scope . ,s)))))))
+      (lambda (k . a) (format (current-error-port) ";; ERR ~a ~a~%" k a)))
+    (force-output)
+    (loop (read-line))))
+#+end_src
+
+* Step 2b — Babel glue: ob-orgcube.el
+#+begin_src emacs-lisp :tangle ./ob-orgcube.el
+(require 'ob)
+(defvar org-babel-default-header-args:orgcube '((:results . "value") (:scope . "public") (:k . 5)))
+(defun org-babel-execute:orgcube (body params)
+  (let* ((scope (cdr (assoc :scope params)))
+         (query (string-trim body)))
+    (format "{\"query\":\"%s\",\"scope\":\"%s\"}" query scope)))
+(add-to-list 'org-babel-load-languages '(orgcube . t))
+(provide 'ob-orgcube)
+#+end_src
+
+* Step 3A — Bind Cube to ACP Agent
+** Public test
+#+begin_src orgcube :scope public :k 5
+guix nonguix firmware
+#+end_src
+
+** Private test
+#+begin_src orgcube :scope private :results value
+approved private memory
+#+end_src
