@@ -19,7 +19,7 @@ One Org file → whole machine.
 
 1. Edit `config.org` (only file you edit)
 2. `C-x C-s` save
-3. `C-c C-v t` tangle → 3 files
+3. `C-c C-v t` tangle → 5 files
 4. System: `sudo guix system reconfigure config.scm`
 5. Home: `guix home reconfigure home.scm`
 
@@ -75,4 +75,4 @@ pulseaudio --start; start-pulseaudio-x11"`
 don@polaris — GNU Guix System — Tuxedo Polaris 17
 (AMD Radeon/Renoir + nVidia TU106) — Dual 1920x1080
 Laptop@144Hz + Samsung 32"@60Hz — XFCE + LightDM + X11
-— Polaris v5 Pure Single Source — 2026-10-19
+— Polaris v5 Pure Single Source — updated 2026-11-04
