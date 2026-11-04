@@ -56,11 +56,12 @@
     (enable-theme 'gruber-darker)))
 
 ;; --- OrgCube - soft load, never crash init ---
-(add-to-list 'load-path "~/dotfiles/orgcube/")
-(when (require 'ob-orgcube nil t)
-  (with-eval-after-load 'org
-    (add-to-list 'org-babel-load-languages '(orgcube . t))
-    (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
+  (add-to-list 'load-path "~/dotfiles/my-packages")
+  (add-to-list 'load-path "~/dotfiles/orgcube")
+  (when (require 'ob-orgcube nil t)
+    (with-eval-after-load 'org
+      (add-to-list 'org-babel-load-languages '(orgcube . t))
+      (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
 
 ;; --- Polaris λ - KEEP AT BOTTOM - leave until authorized removal ---
 (global-set-key (kbd "<menu>") (lambda () (interactive) (insert "λ")))

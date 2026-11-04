@@ -309,14 +309,73 @@
       (enable-theme 'gruber-darker)))
 
   ;; --- OrgCube - soft load, never crash init ---
-  (add-to-list 'load-path "~/dotfiles/orgcube/")
-  (when (require 'ob-orgcube nil t)
-    (with-eval-after-load 'org
-      (add-to-list 'org-babel-load-languages '(orgcube . t))
-      (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
+    (add-to-list 'load-path "~/dotfiles/my-packages")
+    (add-to-list 'load-path "~/dotfiles/orgcube")
+    (when (require 'ob-orgcube nil t)
+      (with-eval-after-load 'org
+        (add-to-list 'org-babel-load-languages '(orgcube . t))
+        (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
 
   ;; --- Polaris λ - KEEP AT BOTTOM - leave until authorized removal ---
   (global-set-key (kbd "<menu>") (lambda () (interactive) (insert "λ")))
   (global-set-key (kbd "C-c l") (lambda () (interactive) (insert "λ")))
   (setq frame-title-format '("Polaris λ"))
 #+end_src
+
+** OrgCube — Ring0 3B — eigencube_query live
+:PROPERTIES:
+:HEADER-ARGS: :mkdirp yes
+:END:
+
+#+BEGIN_SRC scheme :tangle ~/dotfiles/orgcube/eigencube.scm
+;; ~/dotfiles/orgcube/eigencube.scm — EIGEN = own, intrinsic — Polaris v5 Ring0 3B
+(define-module (orgcube eigencube)
+  #:use-module (ice-9 ftw)
+  #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 string-fun)
+  #:export (eigencube-query %cube-dir))
+
+(define %cube-dir
+  (or (and=> (getenv "ORGCUBE_DIR") identity)
+      (string-append (getenv "HOME") "/dotfiles/orgcube")))
+
+(define (cube-files)
+  (if (file-exists? %cube-dir)
+      (filter (lambda (f) (string-suffix? ".cube" f))
+              (scandir %cube-dir (lambda (f) (not (string-prefix? "." f)))))
+      '()))
+
+(define (grep-cube file needle)
+  (let ((path (string-append %cube-dir "/" file)))
+    (call-with-input-file path
+      (lambda (port)
+        (let loop ((line 1) (hits '()))
+          (let ((l (read-line port)))
+            (if (eof-object? l) (reverse hits)
+                (loop (+ line 1)
+                      (if (string-contains-ci l needle)
+                          (cons (list file line (string-trim l)) hits)
+                          hits)))))))))
+
+(define (eigencube-query needle)
+  (if (or (not needle) (string-null? (string-trim needle)))
+      '()
+      (apply append
+             (map (lambda (f) (grep-cube f needle))
+                  (cube-files)))))
+#+END_SRC
+
+#+BEGIN_SRC scheme :tangle ~/dotfiles/orgcube/ob-orgcube.scm
+;; ob-orgcube.scm — Babel executor — replaces echo EIGEN okay
+(use-modules (orgcube eigencube)
+             (ice-9 string-fun))
+
+(define (org-babel-execute:orgcube body params)
+  (let* ((query (string-trim-both body))
+         (hits (eigencube-query query)))
+    (if (null? hits)
+        (format #f "EIGEN OK — 0 hits — cube-dir: %s — query: '%s'" %cube-dir query)
+        (string-join
+         (map (lambda (r) (format #f "%a:%a: %a" (car r) (cadr r) (caddr r))) hits)
+         "\n"))))
+#+END_SRC
