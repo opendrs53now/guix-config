@@ -19,7 +19,7 @@ One Org file → whole machine.
 
 1. Edit `config.org` (only file you edit)
 2. `C-x C-s` save
-3. `C-c C-v t` tangle → 5 files
+3. `C-c C-v t` tangle → 5 code block files.
 4. System: `sudo guix system reconfigure config.scm`
 5. Home: `guix home reconfigure home.scm`
 
