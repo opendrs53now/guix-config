@@ -39,7 +39,6 @@
   (locale "en_US.utf8")
   (keyboard-layout (keyboard-layout "us"))
   (initrd microcode-initrd)
-
   (mapped-devices
    (list (mapped-device
            (source (uuid "52d6551b-bff7-4dfe-bdab-2f9a44e4b557"))
@@ -49,11 +48,9 @@
            (source (uuid "344e4020-2299-4890-bedc-b4e39e3ab649"))
            (target "crypthome")
            (type luks-device-mapping))))
-
   (bootloader (bootloader-configuration
                 (bootloader grub-efi-bootloader)
                 (targets (list "/boot/efi"))))
-
   (file-systems (cons* (file-system
                          (mount-point "/")
                          (device "/dev/mapper/cryptroot")
@@ -69,20 +66,17 @@
                          (type "ext4")
                          (dependencies mapped-devices))
                        %base-file-systems))
-
   (setuid-programs
     (append
       (list (setuid-program
               (program (file-append (specification->package "light") "/bin/light"))))
       %setuid-programs))
-
   (users (cons (user-account
                  (name "don")
                  (comment "Don")
                  (group "users")
                  (supplementary-groups '("wheel" "netdev" "audio" "video")))
                %base-user-accounts))
-
   (packages (append (list (specification->package "iwd")
                          (specification->package "gcc-toolchain")
                          (specification->package "pkg-config")
@@ -114,13 +108,11 @@
                          (specification->package "ghostscript")
                          (specification->package "nvidia-settings"))
                    %base-packages))
-
   (services
     (append
       (list
         (service xfce-desktop-service-type)
         (service nvidia-service-type)
-        ;; FIXES XFCE SHUTDOWN ERROR
         (service lightdm-service-type
                  (lightdm-configuration
                    (xorg-configuration %my-xorg)))

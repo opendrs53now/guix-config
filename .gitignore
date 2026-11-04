@@ -12,3 +12,12 @@
 # Guix
 *.go
 pong/
+
+# LaTeX PDF build
+*.aux
+*.log
+*.out
+*.toc
+*.pdf
+*.tex
+config.org.4B-only
