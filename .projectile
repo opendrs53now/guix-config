@@ -1,0 +1,6 @@
+-Xmodmap
+-*.bak
+-*POLARIS*
+-*.tex
+-*.pdf
+-*.txt

@@ -1,3 +1,4 @@
+# -*- lexical-binding: t; -*-
 #+LATEX_COMPILER: xelatex
 #+LATEX_HEADER: \usepackage{fontspec}
 #+LATEX_HEADER: \usepackage{xunicode}
@@ -244,9 +245,8 @@
 * Emacs - The Perfect Setup + λ key + OrgCube - Polaris v5
 
 #+begin_src emacs-lisp :tangle ~/.emacs.d/init.el
-  ;;; init.el --- Polaris init - Guix 22.5 + gruber-darker + λ -*- lexical-binding: t; -*-
-  ;; 2026-11-04 - v5 Ring0 3B+4B - orgcube soft-load, keeps λ key - GNU Emacs 31.1 - LaTeX xelatex
-
+    ;;; -*- lexical-binding: t; -*-
+    ;;; init.el --- Polaris init - Guix 22.5 + gruber-darker + λ 
   (require 'package)
   (require 'dired-x)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -257,13 +257,50 @@
   (show-paren-mode 1)
   (setq org-src-fontify-natively t)
   (setq org-src-tab-acts-natively t)
+  ;; --- X11 Clipboard sanity for XFCE + WhatsApp Web ---
+  (setq x-select-enable-clipboard t
+        x-select-enable-primary t
+        save-interactivity-history t)
+  (setq select-enable-clipboard t
+        select-enable-primary nil)
 
+;; CUA mode off in Org, but keep C-c / C-v for system clipboard in GUI
+  (cua-mode 0)
+  (global-set-key (kbd "C-c c") 'org-capture) ; move off C-c alone
+
+;; Make mouse middle-click paste work in Emacs too
+  (global-set-key [mouse-2] 'x-yank)
+  
   ;; LaTeX PDF — Ring0 4B - merged
   (require 'ox-latex)
-  (setq org-latex-compiler "xelatex")
-  (setq org-latex-pdf-process
-        '("xelatex -interaction nonstopmode %f"
-          "xelatex -interaction nonstopmode %f"))
+  (require 'ox-latex)
+(setq org-latex-compiler "xelatex")
+(setq org-latex-pdf-process
+      '("xelatex -interaction nonstopmode -output-directory %o %f"
+        "xelatex -interaction nonstopmode -output-directory %o %f"))
+
+;; Fix λ + unicode for Polaris
+(setq org-latex-default-packages-alist
+      '(("" "fontspec" t)
+        ("" "graphicx" t)
+        ("" "longtable" nil)
+        ("" "wrapfig" nil)
+        ("" "rotating" nil)
+        ("normalem" "ulem" t)
+        ("" "amsmath" t)
+        ("" "amssymb" t)
+        ("" "capt-of" nil)
+        ("" "hyperref" nil)))
+
+(add-to-list 'org-latex-packages-alist '("" "xunicode" t))
+(setq org-latex-classes
+      '(("article"
+         "\\documentclass[11pt]{article}\n\\usepackage{fontspec}\n\\setmainfont{DejaVu Sans}\n\\setmonofont{DejaVu Sans Mono}\n[NO-DEFAULT-PACKAGES]\n[PACKAGES]\n[EXTRA]"
+         ("\\section{%s}" . "\\section*{%s}")
+         ("\\subsection{%s}" . "\\subsection*{%s}")
+         ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+         ("\\paragraph{%s}" . "\\paragraph*{%s}")
+         ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
   (setq eshell-prompt-function
         (lambda () (concat "λ ")))
 
@@ -317,11 +354,73 @@
         (add-to-list 'org-babel-load-languages '(orgcube . t))
         (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
 
+  ;; OrgCube v5 Ring1 - Meta_A + Don
+  (defvar orgcube-root (expand-file-name "~/OrgCube/")
+    "OrgCube root - disk is permanent memory")
+  (defvar orgcube-inbox (concat orgcube-root "inbox.org"))
+
+  (defun orgcube-ensure ()
+    (make-directory (concat orgcube-root "exports") t)
+    (unless (file-exists-p orgcube-inbox)
+      (with-temp-file orgcube-inbox
+        (insert "#+TITLE: OrgCube Inbox\n#+FILETAGS: :Polaris:λ:\n\n"))))
+
+  (defun orgcube-capture (tag text)
+    "Capture TEXT with TAG into inbox.org - RAM is temp, disk is real"
+    (orgcube-ensure)
+    (with-current-buffer (find-file-noselect orgcube-inbox)
+      (goto-char (point-max))
+      (insert (format "\n* %s  :%s:\n:LOGBOOK:\n- Captured: %s\n:END:\n%s\n"
+                      (format-time-string "%Y-%m-%d %H:%M %S")
+                      tag
+                      (format-time-string "[%Y-%m-%d %a %H:%M]")
+                      text))
+      (save-buffer))
+    (message "OrgCube captured [%s]" tag))
+
+  (defun orgcube-parse-readme-logs ()
+    "Task 2: Read README.md and *.log into OrgCube - skip lockfiles + dedup"
+    (interactive)
+    (orgcube-ensure)
+    (let ((seen (make-hash-table :test 'equal)))
+      (dolist (f (directory-files-recursively (expand-file-name "~/dotfiles") "\\(README\\.md\\|\\.log\\|config\\.org\\)$" t
+                  (lambda (dir) (not (string-match-p "/\\." dir)))))
+        (when (and (file-regular-p f)
+                   (not (string-match-p "/\\.#" f))
+                   (not (string-match-p "/\\." (file-name-nondirectory f)))
+                   (not (gethash f seen)))
+          (puthash f t seen)
+          (let ((content (with-temp-buffer
+                           (insert-file-contents f)
+                           (buffer-substring-no-properties (point-min) (min 3000 (point-max))))))
+            (orgcube-capture (format "FILE_%s" (file-name-nondirectory f))
+                             (format "[[file:%s]]\n#+BEGIN_QUOTE\n%s\n#+END_QUOTE" f content)))))))
+
+(defun orgcube-export-pdf-txt ()
+  "Task 3: Export OrgCube inbox to PDF + .txt via xelatex"
+  (interactive)
+  (orgcube-ensure)
+  (let ((export-dir (expand-file-name "exports" orgcube-root)))
+    (make-directory export-dir t)
+    (with-current-buffer (find-file-noselect orgcube-inbox)
+      (let ((org-latex-compiler "xelatex"))
+        (org-latex-export-to-pdf)
+        (org-ascii-export-to-ascii)))
+    (shell-command "mv -f ~/OrgCube/inbox.* ~/OrgCube/exports/ 2>/dev/null; true")
+    (message "OrgCube exported to %s" export-dir)))
+
+  ;; Keys: λ is your vision key
+  (global-set-key (kbd "C-c o c") (lambda () (interactive) (orgcube-capture "CHAT" (read-string "Chat: "))))
+  (global-set-key (kbd "C-c o p") 'orgcube-parse-readme-logs)
+  (global-set-key (kbd "C-c o e") 'orgcube-export-pdf-txt)
+
+  (orgcube-ensure)
+  
   ;; --- Polaris λ - KEEP AT BOTTOM ---
   (global-set-key (kbd "<menu>") (lambda () (interactive) (insert "λ")))
   (global-set-key (kbd "C-c l") (lambda () (interactive) (insert "λ")))
   (setq frame-title-format '("Polaris λ"))
-#+end_src
+  #+END_SRC
 
 ** OrgCube — Ring0 3B — eigencube_query live
 :PROPERTIES:
@@ -381,9 +480,12 @@
          "\n"))))
 #+END_SRC
 
+
+
 ** LaTeX PDF — λ everywhere (Polaris v5 Ring0 4B)
 :PROPERTIES:
 :HEADER-ARGS: :mkdirp yes
 :END:
 
 4B now merged into init.el above — this section documents 41198-byte config.pdf build verified 2026-11-04, Safari Meta AI working.
+
