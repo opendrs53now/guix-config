@@ -1,78 +1,50 @@
-# guix-config — Polaris v5
+# guix-config — Polaris v6
 
-Personal GNU Guix System for Tuxedo Polaris. This repo is `~/dotfiles`. 
-**Pure Single Source.**
+`~/dotfiles` for `don@polaris` — Tuxedo Polaris 17 — Stevensville, MI — GNU Guix System — Emacs 31.1.
 
-One Org file → whole machine.
-
-## Layout - Polaris v5 - Pure Single Source
-
-- `config.org` - **Single Source of Truth** - tangles 3 files:
-    - `config.scm` - System OS - Pure System - X11 + Nvidia + XFCE + LUKS
-    - `home.scm` - Home - Pure Home - Stevensville X11 + λ key + gammastep
-    - `~/.emacs.d/init.el` - Emacs 31.1 + gruber-darker + The Perfect Setup
-- `channels.scm` - Guix channels (guix + nonguix)
-- `my-packages/` - Custom packages (raylib-guile etc)
-- `flatpak/` - Decoupled Flatpak layer
-
-## Workflow - v5
-
-1. Edit `config.org` (only file you edit)
-2. `C-x C-s` save
-3. `C-c C-v t` tangle → 5 code block files.
-4. System: `sudo guix system reconfigure config.scm`
-5. Home: `guix home reconfigure home.scm`
-
-Verify: `git diff` should show NO diff for `config.scm` / `home.scm` 
-after tangle — only `config.org`.
-
-## Displays — Dual Monitor [2026-10-17 → v5 2026-10-19]
-
-Laptop 1920x1080@144Hz Primary + Samsung 32" 
-1920x1080@60Hz extended right, Mirror Off
-
-System in `config.scm` declares hybrid GPU capability:
-
-```scheme
-(define %my-xorg
-  (xorg-configuration
-    (modules (cons* nvidia-driver %default-xorg-modules))
-    (drivers '("amdgpu" "nvidia"))
-    (extra-config (list "Section \"ServerLayout\" ..." "Section \"Device\" ..."))))
-Both cards visible (amdgpu Renoir + TU106 RTX 2060 Mobile).
-XFCE stores layout in `displays.xml`. No xrandr scripts.
-
-Home in `home.scm` handles:
-- `.Xmodmap` - AZIO right Menu (keycode 135) → λ
-- `eye-relief.sh` - `gammastep -l 42.015277:-86.505 -t 5500:3500 -m randr`
-- Flatpak Brave as default browser via `custom-WebBrowser.desktop`
-
-## Flatpak
-
-`flatpak/flatpaks.txt` - single source (10 apps)
-`flatpak/sync.sh` - install + remove stale
-`flatpak/fixes/_.env` - per-app overrides (WhatsAppForLinux WEBKIT_DISABLE_DMABUF_RENDERER=1)
-`flatpak/fixes/apply.sh` - generic applier
-
-## SSH / Environment
-
-From `home.scm`:
-- `home-ssh-agent-service-type` → `/run/user/1000/ssh-agent/socket`
-- `home-openssh-service-type` → github.com → `id_ed25519_github`
-- Bash exports `SSH_AUTH_SOCK`, `XDG_DATA_DIRS` for Flatpak, `GUILE___PATH`
-
-## Polaris Quirks - Runtime Fix [2026-10-17]
-
-Cold boot race left `/run/user/1000` without perms → PulseAudio
-Failed to create secure directory + Emacs D-Bus warnings.
-Fixed with Autostart `00-fix-pulse-runtime.desktop`:
-`sh -c "rm -rf /run/user/1000/pulse-native;
-mkdir -p /run/user/1000; chmod 700 /run/user/1000;
-pulseaudio --start; start-pulseaudio-x11"`
+One Org file builds the whole machine.
 
 ## Machine
 
-don@polaris — GNU Guix System — Tuxedo Polaris 17
-(AMD Radeon/Renoir + nVidia TU106) — Dual 1920x1080
-Laptop@144Hz + Samsung 32"@60Hz — XFCE + LightDM + X11
-— Polaris v5 Pure Single Source — updated 2026-11-04
+- AMD Renoir + NVIDIA RTX 2060 Mobile — hybrid — `amdgpu` + `nvidia` — both visible
+- 1920x1080@144Hz laptop + Samsung 32"@60Hz right — Mirror Off — XFCE + LightDM + X11 + LUKS
+- Emacs 31.1 + gruber-darker + The Perfect Setup — Scheme 80.1% / Elisp 13.1% / Shell 6.8%
+- Prompt `u@h w λ` — Menu key 135 → `Greek_lambda` — gammastep `42.015277:-86.505 5500:3500`
+
+## Source
+
+`config.org` is truth. It tangles:
+
+- `config.scm` — System
+- `home.scm` — Home — SSH agent `/run/user/1000/ssh-agent/socket` — GitHub `id_ed25519_github` — Brave Flatpak
+- `~/.emacs.d/init.el` — 6273 bytes — symlinks `~/.config/emacs/init.el` and `~/dotfiles/init.el` → one file
+
+Edit `config.org` → `C-c C-v t` → `sudo guix system reconfigure` + `guix home reconfigure` → `git diff` clean.
+
+## Does
+
+**Sees.** Dual monitors declared in System, no xrandr scripts.
+
+**Remembers.** OrgCube v6 2026-11-05 — now 100% functional:
+- `C-c o p` → `~/OrgCube/inbox.org`
+- `C-c o e` → xelatex DejaVu → `PDF file produced.` clean — keeps inbox at root, moves pdf/tex/txt to `exports/`
+- Fixed today: lexical-binding col0, mv bug, Xmodmap load-file → shell-command, ox-latex truncation
+
+**Breathes.** `eye-relief.sh` gammastep — `flatpak/sync.sh` 10 apps — fixes `WEBKIT_DISABLE_DMABUF_RENDERER=1`.
+
+**Fixes.** `00-fix-pulse-runtime.desktop` — `/run/user/1000` perms.
+
+## Adjacent
+
+`opendrs53now/docs` — GPL-3.0 — games that run here:
+
+- `eigencube/` — v9 final `live.scm`
+- `pong/` — v1 — eigencube v8.5.1 + raylib 5.5 + Guile — no submodules
+
+OS here. Games next door.
+
+## Layout
+
+`config.org` → `config.scm` / `home.scm` / `init.el` + `channels.scm` + `my-packages/` + `orgcube/` + `Xmodmap` + `flatpak/`
+
+69 commits — Pure Single Source — Updated 2026-11-05 — GPL-3.0
