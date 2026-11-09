@@ -244,9 +244,9 @@
 
 * Emacs - The Perfect Setup + λ key + OrgCube - Polaris v5
 
-#+begin_src emacs-lisp :tangle ~/.emacs.d/init.el
-    ;;; -*- lexical-binding: t; -*-
-    ;;; init.el --- Polaris init - Guix 22.5 + gruber-darker + λ 
+#+BEGIN_SRC emacs-lisp :tangle ~/.emacs.d/init.el
+  ;;; -*- lexical-binding: t; -*-
+  ;;; init.el --- Polaris init - Guix 22.5 + λ 
   (require 'package)
   (require 'dired-x)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -257,230 +257,159 @@
   (show-paren-mode 1)
   (setq org-src-fontify-natively t)
   (setq org-src-tab-acts-natively t)
-  ;; --- X11 Clipboard sanity for XFCE + WhatsApp Web ---
-  (setq x-select-enable-clipboard t
-        x-select-enable-primary t
-        save-interactivity-history t)
-  (setq select-enable-clipboard t
-        select-enable-primary nil)
-
-;; CUA mode off in Org, but keep C-c / C-v for system clipboard in GUI
+  (setq x-select-enable-clipboard t x-select-enable-primary t save-interactivity-history t)
+  (setq select-enable-clipboard t select-enable-primary nil)
   (cua-mode 0)
-  (global-set-key (kbd "C-c c") 'org-capture) ; move off C-c alone
-
-;; Make mouse middle-click paste work in Emacs too
+  (global-set-key (kbd "C-c c") 'org-capture)
   (global-set-key [mouse-2] 'x-yank)
-  
-  ;; LaTeX PDF — Ring0 4B - merged
-  (require 'ox-latex)
-  (require 'ox-latex)
-(setq org-latex-compiler "xelatex")
-(setq org-latex-pdf-process
-      '("xelatex -interaction nonstopmode -output-directory %o %f"
-        "xelatex -interaction nonstopmode -output-directory %o %f"))
 
-;; Fix λ + unicode for Polaris
-(setq org-latex-default-packages-alist
-      '(("" "fontspec" t)
-        ("" "graphicx" t)
-        ("" "longtable" nil)
-        ("" "wrapfig" nil)
-        ("" "rotating" nil)
-        ("normalem" "ulem" t)
-        ("" "amsmath" t)
-        ("" "amssymb" t)
-        ("" "capt-of" nil)
-        ("" "hyperref" nil)))
-
-(add-to-list 'org-latex-packages-alist '("" "xunicode" t))
-(setq org-latex-classes
-      '(("article"
-         "\\documentclass[11pt]{article}\n\\usepackage{fontspec}\n\\setmainfont{DejaVu Sans}\n\\setmonofont{DejaVu Sans Mono}\n[NO-DEFAULT-PACKAGES]\n[PACKAGES]\n[EXTRA]"
-         ("\\section{%s}" . "\\section*{%s}")
-         ("\\subsection{%s}" . "\\subsection*{%s}")
-         ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-         ("\\paragraph{%s}" . "\\paragraph*{%s}")
-         ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
-  (setq eshell-prompt-function
-        (lambda () (concat "λ ")))
+  (require 'ox-latex)
+  (setq org-latex-compiler "xelatex")
+  (setq org-latex-pdf-process
+        '("xelatex -interaction nonstopmode -output-directory %o %f"
+          "xelatex -interaction nonstopmode -output-directory %o %f"))
+  (setq org-latex-default-packages-alist
+        '(("" "fontspec" t) ("" "graphicx" t) ("" "longtable" nil) ("" "wrapfig" nil) ("" "rotating" nil) ("normalem" "ulem" t) ("" "amsmath" t) ("" "amssymb" t) ("" "capt-of" nil) ("" "hyperref" nil)))
+  (add-to-list 'org-latex-packages-alist '("" "xunicode" t))
+  (setq org-latex-classes
+        '(("article"
+           "\\documentclass[11pt]{article}\n\\usepackage{fontspec}\n\\setmainfont{DejaVu Sans}\n\\setmonofont{DejaVu Sans Mono}\n[NO-DEFAULT-PACKAGES]\n[PACKAGES]\n[EXTRA]"
+           ("\\section{%s}" . "\\section*{%s}")
+           ("\\subsection{%s}" . "\\subsection*{%s}")
+           ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+           ("\\paragraph{%s}" . "\\paragraph*{%s}")
+           ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+  (setq eshell-prompt-function (lambda () (concat "λ ")))
 
   (when (require 'geiser nil t)
-    (setq geiser-active-implementations '(guile))
-    (setq geiser-guile-binary "guile")
-    (setq geiser-repl-history-filename "~/.cache/geiser-history")
+    (setq geiser-active-implementations '(guile) geiser-guile-binary "guile" geiser-repl-history-filename "~/.cache/geiser-history")
     (when (boundp 'geiser-guile-load-path)
       (add-to-list 'geiser-guile-load-path "~/dotfiles")
       (add-to-list 'geiser-guile-load-path "~/dotfiles/orgcube")
       (add-to-list 'geiser-guile-load-path "~/dotfiles/my-packages")))
 
-  (setq dired-listing-switches "-alh --group-directories-first")
-  (setq dired-dwim-target t)
-  (setq dired-recursive-copies 'always)
-  (setq dired-recursive-deletes 'always)
+  (setq dired-listing-switches "-alh --group-directories-first" dired-dwim-target t dired-recursive-copies 'always dired-recursive-deletes 'always)
   (put 'dired-find-alternate-file 'disabled nil)
-
   (setq-default c-basic-offset 4 indent-tabs-mode nil)
   (add-hook 'c-mode-hook (lambda () (c-set-style "linux")))
   (add-hook 'prog-mode-hook 'display-line-numbers-mode)
-
-  (when (require 'projectile nil t)
-    (projectile-mode +1)
-    (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
-
-  (setq backup-directory-alist '(("." . "~/.emacs.d/backups")))
-  (setq company-minimum-prefix-length 1)
-  (setq printer-name "Brother_HL-2800DW")   
+  (when (require 'projectile nil t) (projectile-mode +1) (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
+  (setq backup-directory-alist '(("." . "~/.emacs.d/backups")) company-minimum-prefix-length 1 printer-name "Brother_HL-2800DW")
 
   (custom-set-variables
-   '(custom-enabled-themes '(gruber-darker))
-   '(custom-safe-themes
-     '("e13beeb34b932f309fb2c360a04a460821ca99fe58f69e65557d6c1b10ba18c7" default))
-   '(package-selected-packages '(projectile gruber-darker-theme company paredit)))
+   '(custom-enabled-themes '(wheatgrass))
+   '(package-selected-packages '(projectile company paredit)))
+    (load-theme 'wheatgrass t)
+  
+  ;; OrgCube Ring2
+  (add-to-list 'load-path "~/dotfiles/my-packages")
+  (add-to-list 'load-path "~/dotfiles/orgcube")
+  (defvar org-babel-default-header-args:orgcube '())
+  (defun org-babel-execute:orgcube (body params)
+    (let ((query (string-trim body)))
+      (if (string-empty-p query) (format "EIGEN OK — cube-dir: %s — empty query" (expand-file-name "~/dotfiles/orgcube"))
+        (with-temp-buffer
+          (let ((exit-code (call-process "guile" nil t nil "-L" (expand-file-name "~/dotfiles/orgcube") "-L" (expand-file-name "~/dotfiles/my-packages") "-c" (format "(use-modules (orgcube eigencube)) (let ((hits (eigencube-query %S))) (if (null? hits) (format #t \"EIGEN OK — 0 hits — cube-dir: %%s — query: '%%s'\" %s %S) (for-each (lambda (r) (format #t \"~a:~a: ~a~%%\" (car r) (cadr r) (caddr r))) hits)))" query (expand-file-name "~/dotfiles/orgcube") query))))
+            (if (zerop exit-code) (buffer-string) (format "EIGEN ERR — guile exit %d: %s" exit-code (buffer-string))))))))
+  (with-eval-after-load 'org (add-to-list 'org-babel-load-languages '(orgcube . t)) (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages))
+#+END_SRC
 
-  (when (require 'gruber-darker-theme nil t)
-    (load-theme 'gruber-darker t t)
-    (enable-theme 'gruber-darker))
-
-  (unless (custom-theme-enabled-p 'gruber-darker)
-    (when (package-installed-p 'gruber-darker-theme)
-      (load-theme 'gruber-darker t t)
-      (enable-theme 'gruber-darker)))
-
-  ;; --- OrgCube - soft load, never crash init ---
-    (add-to-list 'load-path "~/dotfiles/my-packages")
-    (add-to-list 'load-path "~/dotfiles/orgcube")
-    (when (require 'ob-orgcube nil t)
-      (with-eval-after-load 'org
-        (add-to-list 'org-babel-load-languages '(orgcube . t))
-        (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)))
-
-  ;; OrgCube v5 Ring1 - Meta_A + Don
-  (defvar orgcube-root (expand-file-name "~/OrgCube/")
-    "OrgCube root - disk is permanent memory")
-  (defvar orgcube-inbox (concat orgcube-root "inbox.org"))
+* OrgCube v5 — BLOCK #4 — root + watcher — SINGLE DEFINITION
+#+BEGIN_SRC emacs-lisp :tangle ~/.emacs.d/init.el
+  (defvar orgcube-root (expand-file-name "~/OrgCube/") "OrgCube root")
+  (defvar orgcube-inbox (concat orgcube-root "inbox/inbox.org"))
+  (defvar orgcube-clip-min 1 "Min chars — FIX void-variable orgcube-clip-min")
+  (defvar orgcube-clip-max 50000 "Max chars — FIX void-variable orgcube-clip-max")
+  (defvar orgcube-whatsapp-clipboard-watcher-timer nil)
+  (defvar orgcube-whatsapp-clipboard-watcher-last-clip "")
+  (defvar orgcube-last-clip "" "Compat alias for watcher")
+  (defvar orgcube-mode t "Inbox-only blackbox enabled")
 
   (defun orgcube-ensure ()
-    (make-directory (concat orgcube-root "exports") t)
+    (unless (file-directory-p orgcube-root) (make-directory orgcube-root t))
+    (unless (file-directory-p (concat orgcube-root "inbox")) (make-directory (concat orgcube-root "inbox") t))
+    (unless (file-directory-p (concat orgcube-root "manual")) (make-directory (concat orgcube-root "manual") t))
     (unless (file-exists-p orgcube-inbox)
-      (with-temp-file orgcube-inbox
-        (insert "#+TITLE: OrgCube Inbox\n#+FILETAGS: :Polaris:λ:\n\n"))))
+      (with-temp-file orgcube-inbox (insert "#+TITLE: OrgCube Inbox\n")))
+    (unless (file-exists-p (concat orgcube-root "manual/manual.org"))
+      (with-temp-file (concat orgcube-root "manual/manual.org")
+        (insert "#+TITLE: OrgCube Manual — Polaris λ — Don\n"))))
+
+  (defun orgcube-whatsapp-clipboard-watcher ()
+    "Inbox-only blackbox — WhatsApp Meta_A-Don only — text+code -> inbox only — safe file."
+    (when orgcube-mode
+      (let ((clip (ignore-errors (or (gui-get-selection 'CLIPBOARD 'UTF8_STRING) (x-get-clipboard) ""))))
+        (when (and (stringp clip)
+                   (> (length clip) orgcube-clip-min)
+                   (< (length clip) orgcube-clip-max)
+                   (not (string= clip orgcube-whatsapp-clipboard-watcher-last-clip))
+                   (string-match-p "WhatsApp\\|Meta_A\\|Don:" clip))
+          (setq orgcube-whatsapp-clipboard-watcher-last-clip clip)
+          (setq orgcube-last-clip clip)
+          (orgcube-capture "WHATSAPP_META_A" clip)))))
+
+  (defun orgcube-whatsapp-clipboard-watcher-start ()
+    (when (timerp orgcube-whatsapp-clipboard-watcher-timer) (cancel-timer orgcube-whatsapp-clipboard-watcher-timer))
+    (setq orgcube-whatsapp-clipboard-watcher-timer (run-with-timer 10 2 #'orgcube-whatsapp-clipboard-watcher)))
+
+  (defun orgcube-whatsapp-clipboard-watcher-stop ()
+    (when (timerp orgcube-whatsapp-clipboard-watcher-timer)
+      (cancel-timer orgcube-whatsapp-clipboard-watcher-timer)
+      (setq orgcube-whatsapp-clipboard-watcher-timer nil)))
+
+  (add-hook 'after-init-hook #'orgcube-whatsapp-clipboard-watcher-start)
+#+END_SRC
+
+* OrgCube v5 — BLOCK #5 — Capture / Parse / Export
+#+BEGIN_SRC emacs-lisp :tangle ~/.emacs.d/init.el
+  (defun orgcube-sanitize-for-inbox (text)
+    "Escape Org markup so code inside dialog stays text — inbox only."
+    (let ((s text))
+      (setq s (replace-regexp-in-string "#\\+BEGIN_SRC" "#+BEGIN_EXAMPLE" s t))
+      (setq s (replace-regexp-in-string "^\\* " "** " s))
+      s))
 
   (defun orgcube-capture (tag text)
-    "Capture TEXT with TAG into inbox.org - RAM is temp, disk is real"
+    "Inbox-only blackbox — text and code -> safe file — never other buffers."
     (orgcube-ensure)
-    (with-current-buffer (find-file-noselect orgcube-inbox)
-      (goto-char (point-max))
-      (insert (format "\n* %s  :%s:\n:LOGBOOK:\n- Captured: %s\n:END:\n%s\n"
-                      (format-time-string "%Y-%m-%d %H:%M %S")
-                      tag
-                      (format-time-string "[%Y-%m-%d %a %H:%M]")
-                      text))
-      (save-buffer))
-    (message "OrgCube captured [%s]" tag))
-
-  (defun orgcube-parse-readme-logs ()
-    "Task 2: Read README.md and *.log into OrgCube - skip lockfiles + dedup"
-    (interactive)
-    (orgcube-ensure)
-    (let ((seen (make-hash-table :test 'equal)))
-      (dolist (f (directory-files-recursively (expand-file-name "~/dotfiles") "\\(README\\.md\\|\\.log\\|config\\.org\\)$" t
-                  (lambda (dir) (not (string-match-p "/\\." dir)))))
-        (when (and (file-regular-p f)
-                   (not (string-match-p "/\\.#" f))
-                   (not (string-match-p "/\\." (file-name-nondirectory f)))
-                   (not (gethash f seen)))
-          (puthash f t seen)
-          (let ((content (with-temp-buffer
-                           (insert-file-contents f)
-                           (buffer-substring-no-properties (point-min) (min 3000 (point-max))))))
-            (orgcube-capture (format "FILE_%s" (file-name-nondirectory f))
-                             (format "[[file:%s]]\n#+BEGIN_QUOTE\n%s\n#+END_QUOTE" f content)))))))
-
-(defun orgcube-export-pdf-txt ()
-  "Task 3: Export OrgCube inbox to PDF + .txt via xelatex"
-  (interactive)
-  (orgcube-ensure)
-  (let ((export-dir (expand-file-name "exports" orgcube-root)))
-    (make-directory export-dir t)
-    (with-current-buffer (find-file-noselect orgcube-inbox)
-      (let ((org-latex-compiler "xelatex"))
-        (org-latex-export-to-pdf)
-        (org-ascii-export-to-ascii)))
-    (shell-command "mv -f ~/OrgCube/inbox.* ~/OrgCube/exports/ 2>/dev/null; true")
-    (message "OrgCube exported to %s" export-dir)))
-
-  ;; Keys: λ is your vision key
-  (global-set-key (kbd "C-c o c") (lambda () (interactive) (orgcube-capture "CHAT" (read-string "Chat: "))))
-  (global-set-key (kbd "C-c o p") 'orgcube-parse-readme-logs)
-  (global-set-key (kbd "C-c o e") 'orgcube-export-pdf-txt)
-
-  (orgcube-ensure)
+    (let ((clean (orgcube-sanitize-for-inbox text)))
+      (with-current-buffer (find-file-noselect orgcube-inbox)
+        (goto-char (point-max))
+        (insert (format "\n* %s  :%s:\n:LOGBOOK:\n- Captured: %s\n:END:\n#+BEGIN_QUOTE\n%s\n#+END_QUOTE\n"
+                        (format-time-string "%Y-%m-%d %H:%M %S") tag
+                        (format-time-string "[%Y-%m-%d %a %H:%M]") clean))
+        (save-buffer)
+        (message "OrgCube captured [%s] -> inbox" tag))))
   
-  ;; --- Polaris λ - KEEP AT BOTTOM ---
-  (global-set-key (kbd "<menu>") (lambda () (interactive) (insert "λ")))
-  (global-set-key (kbd "C-c l") (lambda () (interactive) (insert "λ")))
-  (setq frame-title-format '("Polaris λ"))
-  #+END_SRC
+  (defun orgcube-parse-readme-logs ()
+    (interactive) (orgcube-ensure)
+    (let ((seen (make-hash-table :test 'equal)))
+      (dolist (f (directory-files-recursively (expand-file-name "~/dotfiles") "\\(README\\.md\\|\\.log\\|config\\.org\\)$" t (lambda (dir) (not (string-match-p "/\\." dir)))))
+        (when (and (file-regular-p f) (not (string-match-p "/\\.#" f)) (not (gethash f seen)))
+          (puthash f t seen)
+          (let ((content (with-temp-buffer (insert-file-contents f) (buffer-substring-no-properties (point-min) (min 3000 (point-max))))))
+            (orgcube-capture (format "FILE_%s" (file-name-nondirectory f)) (format "[[file:%s]]\n#+BEGIN_QUOTE\n%s\n#+END_QUOTE" f content)))))))
 
-** OrgCube — Ring0 3B — eigencube_query live
-:PROPERTIES:
-:HEADER-ARGS: :mkdirp yes
-:END:
-
-#+BEGIN_SRC scheme :tangle ~/dotfiles/orgcube/eigencube.scm
-;; ~/dotfiles/orgcube/eigencube.scm — EIGEN = own, intrinsic — Polaris v5 Ring0 3B
-(define-module (orgcube eigencube)
-  #:use-module (ice-9 ftw)
-  #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 string-fun)
-  #:export (eigencube-query %cube-dir))
-
-(define %cube-dir
-  (or (and=> (getenv "ORGCUBE_DIR") identity)
-      (string-append (getenv "HOME") "/dotfiles/orgcube")))
-
-(define (cube-files)
-  (if (file-exists? %cube-dir)
-      (filter (lambda (f) (string-suffix? ".cube" f))
-              (scandir %cube-dir (lambda (f) (not (string-prefix? "." f)))))
-      '()))
-
-(define (grep-cube file needle)
-  (let ((path (string-append %cube-dir "/" file)))
-    (call-with-input-file path
-      (lambda (port)
-        (let loop ((line 1) (hits '()))
-          (let ((l (read-line port)))
-            (if (eof-object? l) (reverse hits)
-                (loop (+ line 1)
-                      (if (string-contains-ci l needle)
-                          (cons (list file line (string-trim l)) hits)
-                          hits)))))))))
-
-(define (eigencube-query needle)
-  (if (or (not needle) (string-null? (string-trim needle)))
-      '()
-      (apply append
-             (map (lambda (f) (grep-cube f needle))
-                  (cube-files)))))
+  (defun orgcube-export-pdf-txt ()
+    (interactive) (orgcube-ensure)
+    (let* ((root orgcube-root) (inbox-dir (expand-file-name "inbox" root)) (inbox-org (expand-file-name "inbox.org" inbox-dir)))
+      (with-current-buffer (find-file-noselect inbox-org)
+        (let ((org-latex-compiler "xelatex") (org-latex-pdf-process '("xelatex -interaction nonstopmode -output-directory %o %f" "xelatex -interaction nonstopmode -output-directory %o %f")))
+          (org-latex-export-to-pdf) (org-ascii-export-to-ascii)
+          (shell-command (format "cd %s && pdftotext inbox.pdf inbox.txt 2>/dev/null; true" inbox-dir))))
+      (message "OrgCube exported to %s/ trio" inbox-dir)))
 #+END_SRC
 
+* OrgCube v5 — BLOCK #6 — Babel executor + LaTeX PDF — scheme file
 #+BEGIN_SRC scheme :tangle ~/dotfiles/orgcube/ob-orgcube.scm
-;; ob-orgcube.scm — Babel executor — replaces echo EIGEN okay
-(use-modules (orgcube eigencube)
-             (ice-9 string-fun))
-
+;; ob-orgcube.scm — Babel executor
+(use-modules (orgcube eigencube) (ice-9 string-fun))
 (define (org-babel-execute:orgcube body params)
-  (let* ((query (string-trim-both body))
-         (hits (eigencube-query query)))
+  (let* ((query (string-trim-both body)) (hits (eigencube-query query)))
     (if (null? hits)
         (format #f "EIGEN OK — 0 hits — cube-dir: %s — query: '%s'" %cube-dir query)
-        (string-join
-         (map (lambda (r) (format #f "%a:%a: %a" (car r) (cadr r) (caddr r))) hits)
-         "\n"))))
+        (string-join (map (lambda (r) (format #f "%a:%a: %a" (car r) (cadr r) (caddr r))) hits) "\n"))))
 #+END_SRC
-
-
 
 ** LaTeX PDF — λ everywhere (Polaris v5 Ring0 4B)
 :PROPERTIES:
