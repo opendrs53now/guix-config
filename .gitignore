@@ -21,3 +21,7 @@ pong/
 *.pdf
 *.tex
 config.org.4B-only
+*.bak* 
+*.bak
+*current-*-bak
+*full-*-bak
